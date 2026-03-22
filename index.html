@@ -29,6 +29,7 @@ body{background:var(--bg);color:var(--gold);font-family:'JetBrains Mono',monospa
 #boot-btn:disabled{background:rgba(255,215,0,0.15);color:rgba(0,0,0,0.3)}
 #boot-status{font-size:10px;letter-spacing:2px;color:var(--gold-dim);text-align:center;margin-top:14px;max-width:400px;line-height:1.8;min-height:20px}
 #boot-help{font-size:10px;color:rgba(255,255,255,0.15);text-align:center;margin-top:24px;max-width:400px;line-height:1.7}
+#boot-help a{color:rgba(255,215,0,0.4);text-decoration:none}
 #boot-help code{color:rgba(255,215,0,0.5);font-size:9px}
 #chat{display:none;flex-direction:column;height:100dvh}
 #chat.active{display:flex}
@@ -42,11 +43,15 @@ body{background:var(--bg);color:var(--gold);font-family:'JetBrains Mono',monospa
 @keyframes pdot{0%,50%{opacity:1}51%,100%{opacity:.3}}
 #dot.error{background:#e05050;box-shadow:0 0 8px #e05050}
 .hdr-btn{padding:5px 10px;border:1px solid rgba(255,215,0,0.12);border-radius:4px;background:none;color:var(--gold-dim);font-family:'JetBrains Mono';font-size:9px;cursor:pointer;letter-spacing:1px}
+.hdr-btn:active{background:rgba(255,215,0,0.08)}
 #messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;min-height:0;-webkit-overflow-scrolling:touch}
+#messages::-webkit-scrollbar{width:3px}
+#messages::-webkit-scrollbar-thumb{background:rgba(255,215,0,0.12);border-radius:2px}
 .msg{max-width:88%;padding:12px 15px;border-radius:10px;font-size:14px;line-height:1.7;border:1px solid transparent;word-break:break-word;white-space:pre-wrap}
 .user{align-self:flex-end;background:rgba(255,215,0,0.07);border-color:rgba(255,215,0,0.2);color:#ffe680;border-radius:12px 12px 3px 12px}
 .jefe{align-self:flex-start;background:rgba(255,255,255,0.025);border-color:rgba(255,255,255,0.06);color:var(--text);border-radius:12px 12px 12px 3px}
 .jefe.error{border-color:rgba(220,50,50,0.3);color:#e07070;background:rgba(220,50,50,0.04)}
+.jefe.streaming{border-color:rgba(255,215,0,0.2)}
 .typing::after{content:'';display:inline-block;width:2px;height:15px;background:var(--gold);margin-left:3px;animation:bc .65s infinite;vertical-align:text-bottom}
 @keyframes bc{0%,45%{opacity:1}55%,100%{opacity:0}}
 .sys-msg{align-self:center;font-size:11px;color:var(--gold-dim);padding:6px 14px;background:rgba(255,215,0,0.03);border-radius:20px;border:1px solid rgba(255,215,0,0.06)}
@@ -54,20 +59,9 @@ body{background:var(--bg);color:var(--gold);font-family:'JetBrains Mono',monospa
 #msg-input{flex:1;background:rgba(255,255,255,0.035);border:1px solid rgba(255,215,0,0.15);border-radius:8px;color:#fff;padding:12px 14px;font-family:'JetBrains Mono';font-size:14px;outline:none;resize:none;max-height:120px;overflow-y:auto;min-height:46px;line-height:1.5}
 #msg-input:focus{border-color:rgba(255,215,0,0.4)}
 #msg-input::placeholder{color:var(--text-dim)}
-#send-btn{background:var(--gold);border:none;border-radius:8px;color:#000;font-family:'Bebas Neue';padding:12px 22px;font-size:17px;letter-spacing:3px;cursor:pointer;flex-shrink:0;min-height:46px}
+#send-btn{background:var(--gold);border:none;border-radius:8px;color:#000;font-family:'Bebas Neue';padding:12px 22px;font-size:17px;letter-spacing:3px;cursor:pointer;flex-shrink:0;min-height:46px;transition:opacity .15s}
 #send-btn:disabled{opacity:.2}
-
-#skills-toggle{position:fixed;bottom:80px;right:16px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);border-radius:50%;width:44px;height:44px;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;z-index:50;color:var(--gold)}
-#skills-toggle.visible{display:flex}
-#skills-panel{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:100;display:none;flex-direction:column;padding:24px}
-#skills-panel.open{display:flex}
-#skills-panel h2{font-family:'Bebas Neue';font-size:28px;letter-spacing:4px;color:var(--gold);margin-bottom:8px}
-#skills-panel p{font-size:11px;color:rgba(255,215,0,0.4);letter-spacing:1px;margin-bottom:16px}
-#skills-input{flex:1;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.2);border-radius:8px;color:#fff;padding:14px;font-family:'JetBrains Mono';font-size:13px;outline:none;resize:none;line-height:1.7}
-#skills-save{margin-top:12px;background:var(--gold);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue';font-size:20px;letter-spacing:3px;padding:14px;cursor:pointer}
-#skills-close{margin-top:8px;background:none;border:1px solid rgba(255,215,0,0.2);border-radius:8px;color:rgba(255,215,0,0.5);font-family:'JetBrains Mono';font-size:12px;padding:10px;cursor:pointer}
-</style>
-</head>
+#send-btn:active:not(:disabled){opacity:.7​​​​​​​​​​​​​​​​
 <body>
 <div id="boot">
   <div class="boot-glow"></div>
@@ -80,11 +74,11 @@ body{background:var(--bg);color:var(--gold);font-family:'JetBrains Mono',monospa
   <div class="boot-field">
     <label>Model</label>
     <select id="model-pick">
-      <option value="llama3.3:70b">Llama 3.3 70B (best)</option>
-      <option value="qwen3:32b">Qwen 3 32B</option>
-      <option value="llama3.1:8b" selected>Llama 3.1 8B (fast)</option>
-      <option value="mistral:7b">Mistral 7B</option>
-      <option value="custom">Custom...</option>
+      <option value="llama3.3:70b">Llama 3.3 70B (best — needs 48GB+)</option>
+      <option value="qwen3:32b">Qwen 3 32B (great — needs 24GB)</option>
+      <option value="llama3.3:8b" selected>Llama 3.3 8B (fast — needs 8GB)</option>
+      <option value="mistral:7b">Mistral 7B (fastest — needs 8GB)</option>
+      <option value="custom">Custom model name...</option>
     </select>
   </div>
   <div class="boot-field" id="custom-field" style="display:none">
@@ -97,15 +91,40 @@ body{background:var(--bg);color:var(--gold);font-family:'JetBrains Mono',monospa
     On your Vast.ai server run:<br>
     <code>curl -fsSL https://ollama.com/install.sh | sh</code><br>
     <code>OLLAMA_HOST=0.0.0.0 ollama serve &</code><br>
-    <code>ollama pull llama3.1:8b</code>
+    <code>ollama pull llama3.3:8b</code>
   </div>
 </div>
 <div id="chat">
   <div id="header">
-    <div id="hdr-left"><div id="title">JEFE</div><div id="model-badge"></div></div>
-    <div id="hdr-right"><div id="dot"></div><button class="hdr-btn" onclick="clearChat()">CLR</button><button class="hdr-btn" onclick="disconnect()">EXIT</button></div>
+    <div id="hdr-left">
+      <div id="title">JEFE</div>
+      <div id="model-badge"></div>
+    </div>
+    <div id="hdr-right">
+      <div id="dot"></div>
+      <button class="hdr-btn" onclick="toggleSkills()">SKILLS</button>
+      <button class="hdr-btn" onclick="openShield()">SHIELD</button>
+      <button class="hdr-btn" onclick="clearChat()">CLR</button>
+      <button class="hdr-btn" onclick="disconnect()">EXIT</button>
+    </div>
   </div>
   <div id="messages"></div>
+  <div id="skills-panel" style="display:none;position:absolute;inset:0;z-index:50;background:var(--bg);flex-direction:column;overflow:hidden">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:4px;color:var(--gold)">SKILLS</div>
+      <div style="display:flex;gap:8px">
+        <button class="hdr-btn" onclick="exportSkills()">EXPORT</button>
+        <button class="hdr-btn" onclick="importSkillsPrompt()">IMPORT</button>
+        <button class="hdr-btn" onclick="toggleSkills()">CLOSE</button>
+      </div>
+    </div>
+    <div id="skills-list" style="flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch"></div>
+    <div style="padding:10px 14px;padding-bottom:max(14px,env(safe-area-inset-bottom));border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
+      <input type="text" id="skill-name-input" placeholder="Skill name..." style="flex:1;background:rgba(255,255,255,0.035);border:1px solid rgba(255,215,0,0.15);border-radius:8px;color:#fff;padding:10px 12px;font-family:'JetBrains Mono';font-size:13px;outline:none">
+      <button onclick="createSkillFromChat()" style="background:var(--gold);border:none;border-radius:8px;color:#000;font-family:'Bebas Neue';padding:10px 18px;font-size:15px;letter-spacing:2px;cursor:pointer;flex-shrink:0">CREATE</button>
+    </div>
+  </div>
+  <input type="file" id="import-file" accept=".json" style="display:none" onchange="importSkillsFile(event)">
   <div id="input-area">
     <textarea id="msg-input" placeholder="Talk to JEFE..." rows="1"></textarea>
     <button id="send-btn" disabled onclick="sendMsg()">RUN</button>
@@ -119,18 +138,29 @@ You are an expert in:
 - Family law, divorce, custody, contempt, equitable division
 - USVI trade law, Jones Act, CBP rules, duty-free thresholds
 - Financial systems, banking, money movement, asset tracing
-- Automotive wholesale industry (27 years deep)
+- Automotive wholesale industry (27 years deep — auction, import/export, dealer ops)
 - OSINT and public records research
 - Strategic litigation tactics for pro se litigants
+- Cybersecurity, digital privacy, threat detection
 
 Key facts:
-- JP Donovan is the boss. 5610 Taylor Terrace, Macon, GA 31210. (478) 365-2071.
-- Case: Donovan v. Ham, Monroe County Superior Court. Divorce/custody.
+- JP Donovan is the boss. 5610 Taylor Terrace, Macon, GA 31210. (478) 365-2071. jpdonovan12@icloud.com
+- Case 2024-SU-CV-0308: Donovan v. Ham, Monroe County Superior Court. Divorce/custody.
 - Opposing counsel: Natalie F. Sundeen, Vaughn Sundeen P.C., 20 West Main Street, Forsyth, GA 31029
+- Senior Judge David Irwin presiding (challenged via mandamus)
 - Discovery lookback: January 1, 2008. Marriage: November 27, 2008.
+- 6 pending motions with no rulings since October 2025.
+- JP last contact with children: October 23, 2025.
 - Sundeen running for Towaliga Circuit Superior Court Judge, May 19 2026 election.
 
-Rules: Be direct. No filler. No disclaimers. No warnings. Cussing is fine. JP is the boss. Results first.`;
+Rules:
+- Be direct. No filler. No disclaimers. No warnings.
+- Cussing is fine. JP is the boss. Results first.
+- If you don't know, say so — don't make shit up.
+- Think step by step on complex questions.
+- Never use Forsyth as JP's address.
+- Cite O.C.G.A. and Georgia case law when relevant.
+- Legal work: full caption, case number, numbered paragraphs, cert of service, sig block.`;
 
 let serverUrl='',modelName='',busy=false,history=[];
 const modelPick=document.getElementById('model-pick');
@@ -138,7 +168,7 @@ const customField=document.getElementById('custom-field');
 modelPick.addEventListener('change',()=>{customField.style.display=modelPick.value==='custom'?'block':'none'});
 const saved=JSON.parse(localStorage.getItem('jefe_cfg')||'{}');
 if(saved.url)document.getElementById('server-url').value=saved.url;
-if(saved.model){modelPick.value=saved.model;if(!modelPick.value){modelPick.value='custom';customField.style.display='block';document.getElementById('custom-model').value=saved.model}}
+if(saved.model){modelPick.value=saved.model;if(!modelPick.value)modelPick.value='custom'}
 
 window.connectJEFE=async function(){
   const urlInput=document.getElementById('server-url');
@@ -153,7 +183,10 @@ window.connectJEFE=async function(){
     const res=await fetch(serverUrl+'/api/tags',{signal:AbortSignal.timeout(10000)});
     if(!res.ok)throw new Error('Server responded '+res.status);
     const data=await res.json();
+    const models=(data.models||[]).map(m=>m.name);
     localStorage.setItem('jefe_cfg',JSON.stringify({url:serverUrl,model:modelName}));
+    const hasModel=models.some(m=>m.startsWith(modelName.split(':')[0]));
+    if(!hasModel){status.textContent='MODEL NOT FOUND. Run: ollama pull '+modelName;btn.disabled=false;return}
     status.textContent='CONNECTED. LAUNCHING...';
     setTimeout(()=>{
       document.getElementById('boot').classList.add('hidden');
@@ -171,7 +204,6 @@ function addSys(text){const msgs=document.getElementById('messages');const d=doc
 const msgInput=document.getElementById('msg-input');
 msgInput.addEventListener('input',()=>{msgInput.style.height='auto';msgInput.style.height=Math.min(msgInput.scrollHeight,120)+'px';document.getElementById('send-btn').disabled=busy||!msgInput.value.trim()});
 msgInput.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}});
-
 window.sendMsg=async function(){
   if(busy||!msgInput.value.trim())return;
   const val=msgInput.value.trim();msgInput.value='';msgInput.style.height='auto';
@@ -179,9 +211,9 @@ window.sendMsg=async function(){
   addMsg(val,'user');history.push({role:'user',content:val});
   busy=true;
   const dot=document.getElementById('dot');dot.classList.remove('error');dot.classList.add('busy');
-  const r=addMsg('','jefe');r.classList.add('typing');
+  const r=addMsg('','jefe streaming');r.classList.add('typing');
   try{
-    const messages=[{role:'system',content:SYSTEM+(window._customSkillsActive?'\n\nADDITIONAL SKILLS:\n'+window._customSkillsActive:'')},...history.slice(-20)];
+    const messages=[{role:'system',content:SYSTEM},...history.slice(-20)];
     const res=await fetch(serverUrl+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:modelName,messages,stream:true})});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const reader=res.body.getReader();const decoder=new TextDecoder();let full='',buf='';
@@ -190,61 +222,63 @@ window.sendMsg=async function(){
       buf+=decoder.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop()||'';
       for(const line of lines){if(!line.trim())continue;try{const p=JSON.parse(line);if(p.message&&p.message.content){full+=p.message.content;r.textContent=full;document.getElementById('messages').scrollTop=999999}}catch{}}
     }
-    r.textContent=full||'(empty)';r.classList.remove('typing');
+    if(buf.trim()){try{const p=JSON.parse(buf);if(p.message&&p.message.content)full+=p.message.content}catch{}}
+    r.textContent=full||'(empty response)';r.classList.remove('streaming','typing');
     history.push({role:'assistant',content:full});
-  }catch(e){r.textContent='ERROR: '+e.message;r.classList.add('error');r.classList.remove('typing');dot.classList.add('error');history.pop()}
-  busy=false;dot.classList.remove('busy');document.getElementById('send-btn').disabled=false;
+  }catch(e){r.textContent='ERROR: '+e.message+'\n\nCheck that Ollama is running on your server.';r.classList.add('error');r.classList.remove('streaming','typing');dot.classList.add('error');history.pop()}
+  busy=false;dot.classList.remove('busy');document.getElementById('send-btn').disabled=false;document.getElementById('messages').scrollTop=999999;
 };
 
 window.clearChat=function(){history=[];document.getElementById('messages').innerHTML='';addSys('Session cleared');addMsg('What do you need?','jefe')};
 window.disconnect=function(){history=[];document.getElementById('chat').classList.remove('active');document.getElementById('messages').innerHTML='';document.getElementById('boot').classList.remove('hidden');document.getElementById('boot-btn').disabled=false;document.getElementById('boot-status').textContent='DISCONNECTED'};
-</script>
 
-<button id="skills-toggle" title="Edit JEFE Skills">⚙</button>
-<div id="skills-panel">
-  <h2>JEFE SKILLS</h2>
-  <p>TYPE ANY SKILL OR INSTRUCTION. JEFE WILL FOLLOW IT.</p>
-  <textarea id="skills-input" placeholder="Example: You are an expert in cryptocurrency tracing and blockchain forensics. You know how to track wallet addresses and follow money across chains..."></textarea>
-  <button id="skills-save" onclick="saveSkills()">SAVE & APPLY</button>
-  <button id="skills-close" onclick="closeSkills()">CANCEL</button>
-</div>
+function getSkills(){return JSON.parse(localStorage.getItem('jefe_skills')||'[]')}
+function saveSkills(skills){localStorage.setItem('jefe_skills',JSON.stringify(skills))}
 
-<script>
-var customSkills = localStorage.getItem('jefe_skills') || '';
-document.getElementById('skills-input').value = customSkills;
-
-document.getElementById('skills-toggle').addEventListener('click', function(){
-  document.getElementById('skills-input').value = localStorage.getItem('jefe_skills') || '';
-  document.getElementById('skills-panel').classList.add('open');
-});
-
-window.saveSkills = function(){
-  customSkills = document.getElementById('skills-input').value.trim();
-  localStorage.setItem('jefe_skills', customSkills);
-  document.getElementById('skills-panel').classList.remove('open');
+window.toggleSkills=function(){
+  const panel=document.getElementById('skills-panel');
+  if(panel.style.display==='none'||!panel.style.display){panel.style.display='flex';renderSkills()}
+  else{panel.style.display='none'}
 };
 
-window.closeSkills = function(){
-  document.getElementById('skills-panel').classList.remove('open');
+function renderSkills(){
+  const list=document.getElementById('skills-list');
+  const skills=getSkills();
+  if(!skills.length){list.innerHTML='<div class="no-skills">No skills yet.<br><br>Type a skill name below and tap CREATE.<br>JEFE will build it using AI.<br><br>Or tell JEFE in chat:<br>"Create a skill that does [X]"</div>';return}
+  list.innerHTML=skills.map((s,i)=>'<div class="skill-card"><div class="skill-name">'+esc(s.name)+'</div><div class="skill-desc">'+esc(s.description||'No description')+'</div><div class="skill-actions"><button onclick="useSkill('+i+')">USE</button><button onclick="editSkill('+i+')">EDIT</button><button onclick="viewSkill('+i+')">VIEW</button><button class="danger" onclick="deleteSkill('+i+')">DEL</button></div></div>').join('');
+}
+
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+window.createSkillFromChat=async function(){
+  const nameInput=document.getElementById('skill-name-input');
+  const name=nameInput.value.trim();
+  if(!name)return;
+  nameInput.value='';
+  toggleSkills();
+  msgInput.value='Create a new skill called "'+name+'". Define it as a JSON object with: name, description, system_prompt, triggers array, instructions. Respond ONLY with JSON.';
+  await sendMsg();
+  setTimeout(()=>{
+    const msgs=document.querySelectorAll('.msg.jefe');
+    if(!msgs.length)return;
+    const last=msgs[msgs.length-1].textContent;
+    try{
+      const clean=last.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+      const skill=JSON.parse(clean);
+      if(skill.name){const skills=getSkills();skills.push(skill);saveSkills(skills);addSys('Skill "'+skill.name+'" created.');}
+    }catch{addSys('Could not auto-parse skill. Use SKILLS > IMPORT.')}
+  },2000);
 };
 
-// Show skills button when chat is active
-var origConnect = window.connectJEFE;
-var skillsCheckInterval = setInterval(function(){
-  if(document.getElementById('chat').classList.contains('active')){
-    document.getElementById('skills-toggle').classList.add('visible');
-  }
-}, 500);
+window.useSkill=function(i){const skills=getSkills();const s=skills[i];if(!s)return;toggleSkills();history.push({role:'system',content:'\n\n[ACTIVE SKILL: '+s.name+']\n'+s.system_prompt});addSys('Skill "'+s.name+'" activated.')};
+window.editSkill=function(i){const skills=getSkills();const s=skills[i];if(!s)return;toggleSkills();msgInput.value='Edit skill "'+s.name+'": '+JSON.stringify(s,null,2)+'\n\nRespond ONLY with updated JSON.';msgInput.dispatchEvent(new Event('input'))};
+window.viewSkill=function(i){const skills=getSkills();const s=skills[i];if(!s)return;toggleSkills();addMsg(JSON.stringify(s,null,2),'jefe')};
+window.deleteSkill=function(i){const skills=getSkills();skills.splice(i,1);saveSkills(skills);renderSkills()};
+window.exportSkills=function(){const skills=getSkills();const blob=new Blob([JSON.stringify(skills,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='jefe-skills.json';a.click();URL.revokeObjectURL(url)};
+window.importSkillsPrompt=function(){document.getElementById('import-file').click()};
+window.importSkillsFile=function(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){try{const imported=JSON.parse(ev.target.result);const skills=getSkills();if(Array.isArray(imported))skills.push(...imported);else if(imported.name)skills.push(imported);saveSkills(skills);renderSkills()}catch{alert('Invalid skills file')}};reader.readAsText(file);e.target.value=''};
 
-// Inject custom skills into SYSTEM prompt
-var origSendMsg = window.sendMsg;
-window.sendMsg = async function(){
-  if(customSkills){
-    window._customSkillsActive = customSkills;
-  }
-  await origSendMsg();
-};
+window.openShield=function(){window.open('./shield/','_blank')};
 </script>
 </body>
 </html>
-
