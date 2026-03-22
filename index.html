@@ -56,6 +56,16 @@ body{background:var(--bg);color:var(--gold);font-family:'JetBrains Mono',monospa
 #msg-input::placeholder{color:var(--text-dim)}
 #send-btn{background:var(--gold);border:none;border-radius:8px;color:#000;font-family:'Bebas Neue';padding:12px 22px;font-size:17px;letter-spacing:3px;cursor:pointer;flex-shrink:0;min-height:46px}
 #send-btn:disabled{opacity:.2}
+
+#skills-toggle{position:fixed;bottom:80px;right:16px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);border-radius:50%;width:44px;height:44px;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;z-index:50;color:var(--gold)}
+#skills-toggle.visible{display:flex}
+#skills-panel{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:100;display:none;flex-direction:column;padding:24px}
+#skills-panel.open{display:flex}
+#skills-panel h2{font-family:'Bebas Neue';font-size:28px;letter-spacing:4px;color:var(--gold);margin-bottom:8px}
+#skills-panel p{font-size:11px;color:rgba(255,215,0,0.4);letter-spacing:1px;margin-bottom:16px}
+#skills-input{flex:1;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.2);border-radius:8px;color:#fff;padding:14px;font-family:'JetBrains Mono';font-size:13px;outline:none;resize:none;line-height:1.7}
+#skills-save{margin-top:12px;background:var(--gold);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue';font-size:20px;letter-spacing:3px;padding:14px;cursor:pointer}
+#skills-close{margin-top:8px;background:none;border:1px solid rgba(255,215,0,0.2);border-radius:8px;color:rgba(255,215,0,0.5);font-family:'JetBrains Mono';font-size:12px;padding:10px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -171,7 +181,7 @@ window.sendMsg=async function(){
   const dot=document.getElementById('dot');dot.classList.remove('error');dot.classList.add('busy');
   const r=addMsg('','jefe');r.classList.add('typing');
   try{
-    const messages=[{role:'system',content:SYSTEM},...history.slice(-20)];
+    const messages=[{role:'system',content:SYSTEM+(window._customSkillsActive?'\n\nADDITIONAL SKILLS:\n'+window._customSkillsActive:'')},...history.slice(-20)];
     const res=await fetch(serverUrl+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:modelName,messages,stream:true})});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const reader=res.body.getReader();const decoder=new TextDecoder();let full='',buf='';
@@ -189,5 +199,52 @@ window.sendMsg=async function(){
 window.clearChat=function(){history=[];document.getElementById('messages').innerHTML='';addSys('Session cleared');addMsg('What do you need?','jefe')};
 window.disconnect=function(){history=[];document.getElementById('chat').classList.remove('active');document.getElementById('messages').innerHTML='';document.getElementById('boot').classList.remove('hidden');document.getElementById('boot-btn').disabled=false;document.getElementById('boot-status').textContent='DISCONNECTED'};
 </script>
+
+<button id="skills-toggle" title="Edit JEFE Skills">⚙</button>
+<div id="skills-panel">
+  <h2>JEFE SKILLS</h2>
+  <p>TYPE ANY SKILL OR INSTRUCTION. JEFE WILL FOLLOW IT.</p>
+  <textarea id="skills-input" placeholder="Example: You are an expert in cryptocurrency tracing and blockchain forensics. You know how to track wallet addresses and follow money across chains..."></textarea>
+  <button id="skills-save" onclick="saveSkills()">SAVE & APPLY</button>
+  <button id="skills-close" onclick="closeSkills()">CANCEL</button>
+</div>
+
+<script>
+var customSkills = localStorage.getItem('jefe_skills') || '';
+document.getElementById('skills-input').value = customSkills;
+
+document.getElementById('skills-toggle').addEventListener('click', function(){
+  document.getElementById('skills-input').value = localStorage.getItem('jefe_skills') || '';
+  document.getElementById('skills-panel').classList.add('open');
+});
+
+window.saveSkills = function(){
+  customSkills = document.getElementById('skills-input').value.trim();
+  localStorage.setItem('jefe_skills', customSkills);
+  document.getElementById('skills-panel').classList.remove('open');
+};
+
+window.closeSkills = function(){
+  document.getElementById('skills-panel').classList.remove('open');
+};
+
+// Show skills button when chat is active
+var origConnect = window.connectJEFE;
+var skillsCheckInterval = setInterval(function(){
+  if(document.getElementById('chat').classList.contains('active')){
+    document.getElementById('skills-toggle').classList.add('visible');
+  }
+}, 500);
+
+// Inject custom skills into SYSTEM prompt
+var origSendMsg = window.sendMsg;
+window.sendMsg = async function(){
+  if(customSkills){
+    window._customSkillsActive = customSkills;
+  }
+  await origSendMsg();
+};
+</script>
 </body>
 </html>
+
