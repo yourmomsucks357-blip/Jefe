@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>JEFE SHIELD</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--green:#00e676;--green-dim:rgba(0,230,118,0.3);--red:#ff1744;--gold:#ffd700;--bg:#060608;--surface:#0c0c10;--border:rgba(0,230,118,0.12);--text:#d4d4d8;--text-dim:rgba(255,255,255,0.25)}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--green);font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column;height:100dvh}
+#header{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#title{font-family:'Bebas Neue';font-size:24px;letter-spacing:5px;color:var(--green);text-shadow:0 0 20px rgba(0,230,118,0.3)}
+#subtitle{font-size:8px;letter-spacing:3px;color:var(--green-dim)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 10px var(--green)}50%{box-shadow:0 0 20px var(--green),0 0 40px rgba(0,230,118,0.3)}}
+#main{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch}
+.tabs{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0}
+.tab{flex:1;padding:10px;text-align:center;font-size:10px;letter-spacing:2px;cursor:pointer;background:transparent;color:var(--green-dim);border:none;font-family:'JetBrains Mono';transition:all .15s}
+.tab.active{background:rgba(0,230,118,0.1);color:var(--green)}
+.tab:active{opacity:0.7}
+.panel{display:none;flex-direction:column;gap:14px}
+.panel.active{display:flex}
+#link-input,#email-input{width:100%;background:rgba(0,230,118,0.04);border:1px solid rgba(0,230,118,0.2);border-radius:8px;color:#fff;padding:14px;font-family:'JetBrains Mono';font-size:13px;outline:none;resize:none}
+#link-input{min-height:80px}
+#email-input{min-height:120px}
+#link-input:focus,#email-input:focus{border-color:rgba(0,230,118,0.5)}
+#link-input::placeholder,#email-input::placeholder{color:var(--text-dim)}
+.action-btn{width:100%;background:var(--green);border:none;border-radius:8px;color:#000;font-family:'Bebas Neue';font-size:18px;letter-spacing:3px;padding:14px;cursor:pointer;transition:all .15s}
+.action-btn:active{transform:scale(0.97);opacity:0.8}
+.action-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--green-dim);font-size:14px;padding:10px}
+.result-card{background:rgba(0,230,118,0.03);border:1px solid var(--border);border-radius:8px;padding:14px}
+.result-card.danger{border-color:rgba(255,23,68,0.3);background:rgba(255,23,68,0.04)}
+.result-card.safe{border-color:rgba(0,230,118,0.3);background:rgba(0,230,118,0.04)}
+.result-label{font-size:9px;letter-spacing:2px;color:var(--green-dim);margin-bottom:6px;text-transform:uppercase}
+.result-value{font-size:12px;color:var(--text);line-height:1.6;word-break:break-all}
+.result-value.danger{color:var(--red)}
+.result-value.safe{color:var(--green)}
+.tracker-item{padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;color:var(--text);line-height:1.5}
+.tracker-item:last-child{border-bottom:none}
+.tracker-item .type{color:var(--red);font-size:9px;letter-spacing:1px;display:block;margin-bottom:2px}
+.ip-display{font-family:'Bebas Neue';font-size:36px;letter-spacing:3px;text-align:center;padding:20px;color:var(--green);text-shadow:0 0 30px rgba(0,230,118,0.3)}
+.ip-label{text-align:center;font-size:10px;letter-spacing:3px;color:var(--green-dim)}
+.info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px}
+.info-row .label{color:var(--green-dim)}
+.info-row .value{color:var(--text)}
+.section-desc{font-size:11px;color:var(--text-dim);line-height:1.6}
+#scan-results,#email-results,#proxy-results{display:flex;flex-direction:column;gap:10px}
+</style>
+</head>
+<body>
+<div id="header">
+  <div>
+    <div id="title">JEFE SHIELD</div>
+    <div id="subtitle">LINK SCANNER · IP GUARD · EMAIL ANALYZER</div>
+  </div>
+  <div class="status-dot"></div>
+</div>
+<div id="main">
+  <div class="tabs">
+    <button class="tab active" onclick="showPanel('scan')">SCAN LINK</button>
+    <button class="tab" onclick="showPanel('email')">EMAIL</button>
+    <button class="tab" onclick="showPanel('proxy')">PROXY</button>
+    <button class="tab" onclick="showPanel('ip')">MY IP</button>
+  </div>
+  <div class="panel active" id="panel-scan">
+    <div class="section-desc">Paste any link. Shield strips trackers, reveals hidden redirects, and shows what data they're collecting before you click.</div>
+    <textarea id="link-input" placeholder="Paste a suspicious link here..."></textarea>
+    <button class="action-btn" onclick="scanLink()">SCAN LINK</button>
+    <button class="action-btn secondary" onclick="openClean()">OPEN CLEAN (VIA PROXY)</button>
+    <div id="scan-results"></div>
+  </div>
+  <div class="panel" id="panel-email">
+    <div class="section-desc">Paste the full email source or any email content. Shield finds tracking pixels, hidden links, and data collection.</div>
+    <textarea id="email-input" placeholder="Paste email content or source here..."></textarea>
+    <button class="action-btn" onclick="analyzeEmail()">ANALYZE EMAIL</button>
+    <div id="email-results"></div>
+  </div>
+  <div class="panel" id="panel-proxy">
+    <div class="section-desc">Browse through a proxy. Your IP stays hidden. They see the proxy server, not you.</div>
+    <div style="display:flex;gap:8px">
+      <input type="url" id="proxy-url" placeholder="https://example.com" style="flex:1;background:rgba(0,230,118,0.04);border:1px solid rgba(0,230,118,0.2);border-radius:8px;color:#fff;padding:12px;font-family:'JetBrains Mono';font-size:13px;outline:none">
+      <button class="action-btn" style="width:auto;padding:12px 20px" onclick="proxyBrowse()">GO</button>
+    </div>
+    <div id="proxy-results"></div>
+  </div>
+  <div class="panel" id="panel-ip">
+    <div class="section-desc">Shows what anyone tracking you can see right now.</div>
+    <div id="ip-info"><div class="ip-label">LOADING YOUR IP...</div><div class="ip-display">...</div></div>
+    <div id="ip-details"></div>
+    <button class="action-btn" onclick="checkIP()">REFRESH</button>
+  </div>
+</div>
+<script>
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  event.target.classList.add('active');
+  if(name==='ip')checkIP();
+}
+
+const TRACKER_DOMAINS=['doubleclick.net','google-analytics.com','facebook.com/tr','fbcdn.net','pixel.','track.','click.','open.','trk.','t.co','bit.ly','goo.gl','tinyurl.com','ow.ly','mailchimp.com','sendgrid.net','constantcontact.com','paperlesspost.com','mixpanel.com','amplitude.com','segment.io','hotjar.com','hubspot.com','marketo.com','pardot.com','salesforce.com','mc.us','list-manage.com'];
+const TRACKING_PARAMS=['utm_source','utm_medium','utm_campaign','utm_term','utm_content','fbclid','gclid','msclkid','mc_cid','mc_eid','_ga','_gl','ref','source','si','igshid','s','t','ck','trk','trkid','spm','scid','click_id','tracking_id','affiliate_id','partner_id'];
+
+function scanLink(){
+  const input=document.getElementById('link-input').value.trim();
+  const results=document.getElementById('scan-results');
+  results.innerHTML='';
+  if(!input){results.innerHTML='<div class="result-card danger"><div class="result-label">ERROR</div><div class="result-value danger">No link entered</div></div>';return}
+  let url;
+  try{url=new URL(input)}catch{try{url=new URL('https://'+input)}catch{results.innerHTML='<div class="result-card danger"><div class="result-label">ERROR</div><div class="result-value danger">Invalid URL</div></div>';return}}
+  const domain=url.hostname;
+  const isKnownTracker=TRACKER_DOMAINS.some(t=>domain.includes(t));
+  results.innerHTML+='<div class="result-card '+(isKnownTracker?'danger':'safe')+'"><div class="result-label">DOMAIN</div><div class="result-value '+(isKnownTracker?'danger':'safe')+'">'+domain+(isKnownTracker?' ⚠️ KNOWN TRACKING DOMAIN':' ✓')+'</div></div>';
+  const params=[...url.searchParams.entries()];
+  const trackers=params.filter(([k])=>TRACKING_PARAMS.includes(k.toLowerCase()));
+  const clean=params.filter(([k])=>!TRACKING_PARAMS.includes(k.toLowerCase()));
+  if(trackers.length>0){
+    let html='<div class="result-card danger"><div class="result-label">TRACKING PARAMETERS FOUND ('+trackers.length+')</div>';
+    trackers.forEach(([k,v])=>{html+='<div class="tracker-item"><span class="type">TRACKER</span>'+k+' = '+v+'</div>'});
+    html+='</div>';
+    results.innerHTML+=html;
+  }
+  const cleanUrl=new URL(url.origin+url.pathname);
+  clean.forEach(([k,v])=>cleanUrl.searchParams.set(k,v));
+  results.innerHTML+='<div class="result-card safe"><div class="result-label">CLEAN URL (TRACKERS STRIPPED)</div><div class="result-value safe" id="clean-url">'+cleanUrl.toString()+'</div></div>';
+  if(url.hostname==='t.co'||url.hostname==='bit.ly'||url.hostname==='goo.gl'||url.hostname==='tinyurl.com'||url.hostname==='ow.ly'||url.pathname.length<8){
+    results.innerHTML+='<div class="result-card danger"><div class="result-label">⚠️ SHORTENED URL</div><div class="result-value danger">This is a shortened/redirect URL. The real destination is hidden. Use PROXY to open it safely.</div></div>';
+  }
+  if(domain.includes('paperlesspost')){
+    results.innerHTML+='<div class="result-card danger"><div class="result-label">⚠️ PAPERLESS POST DETECTED</div><div class="result-value danger">Paperless Post tracks: your IP address, device type, browser fingerprint, exact time you viewed the card, how long you viewed it, whether you downloaded anything, and reports all of this back to the sender.</div></div>';
+  }
+  const threatLevel=isKnownTracker||trackers.length>2?'HIGH':trackers.length>0?'MEDIUM':'LOW';
+  const color=threatLevel==='LOW'?'safe':'danger';
+  results.innerHTML+='<div class="result-card '+color+'"><div class="result-label">THREAT LEVEL</div><div class="result-value '+color+'" style="font-family:Bebas Neue;font-size:24px;letter-spacing:3px">'+threatLevel+'</div></div>';
+  window._cleanUrl=cleanUrl.toString();
+}
+
+function openClean(){
+  const input=document.getElementById('link-input').value.trim();
+  const url=window._cleanUrl||input;
+  if(!url)return;
+  window.open('https://api.allorigins.win/raw?url='+encodeURIComponent(url),'_blank');
+}
+
+function analyzeEmail(){
+  const input=document.getElementById('email-input').value;
+  const results=document.getElementById('email-results');
+  results.innerHTML='';
+  if(!input){results.innerHTML='<div class="result-card danger"><div class="result-label">ERROR</div><div class="result-value danger">No email content entered</div></div>';return}
+  const findings=[];
+  const urlRegex=/(https?:\/\/[^\s<>"']+)/gi;
+  const urls=[...new Set(input.match(urlRegex)||[])];
+  const pixelRegex=/(width\s*[:=]\s*["']?1(?:px)?["']?\s*.*?height\s*[:=]\s*["']?1(?:px)?["']?)|(height\s*[:=]\s*["']?1(?:px)?["']?\s*.*?width\s*[:=]\s*["']?1(?:px)?["']?)/gi;
+  const pixels=input.match(pixelRegex)||[];
+  if(pixels.length>0)findings.push({type:'TRACKING PIXEL',severity:'danger',detail:pixels.length+' invisible tracking pixel(s) detected. These report back when you open the email.'});
+  const trackerUrls=urls.filter(u=>TRACKER_DOMAINS.some(t=>u.includes(t)));
+  if(trackerUrls.length>0)findings.push({type:'TRACKING URLS',severity:'danger',detail:trackerUrls.length+' tracking URL(s) found:\n'+trackerUrls.join('\n')});
+  let paramCount=0;
+  urls.forEach(u=>{try{const parsed=new URL(u);[...parsed.searchParams.keys()].forEach(k=>{if(TRACKING_PARAMS.includes(k.toLowerCase()))paramCount++})}catch{}});
+  if(paramCount>0)findings.push({type:'TRACKING PARAMETERS',severity:'danger',detail:paramCount+' tracking parameter(s) embedded in links.'});
+  if(input.toLowerCase().includes('paperlesspost'))findings.push({type:'PAPERLESS POST',severity:'danger',detail:'Paperless Post service detected. Tracks: IP, device, browser, view time, engagement. All data reported to sender.'});
+  const imgRegex=/<img[^>]+src\s*=\s*["'](https?:\/\/[^"']+)["']/gi;
+  const images=[...input.matchAll(imgRegex)].map(m=>m[1]);
+  if(images.length>0)findings.push({type:'REMOTE IMAGES',severity:'danger',detail:images.length+' remote image(s) that track when you open the email:\n'+images.slice(0,5).join('\n')});
+  if(input.toLowerCase().includes('address book'))findings.push({type:'SOCIAL ENGINEERING',severity:'danger',detail:'Email asks you to add sender to address book. This ensures future emails bypass spam filters.'});
+  if(input.toLowerCase().includes('download'))findings.push({type:'DOWNLOAD PROMPT',severity:'danger',detail:'Email prompts you to download something. Downloaded files can contain tracking metadata.'});
+  if(urls.length>0)findings.push({type:'ALL URLS FOUND ('+urls.length+')',severity:'',detail:urls.join('\n')});
+  if(findings.length===0){results.innerHTML='<div class="result-card safe"><div class="result-label">RESULT</div><div class="result-value safe">No obvious trackers detected.</div></div>';return}
+  findings.forEach(f=>{results.innerHTML+='<div class="result-card '+f.severity+'"><div class="result-label">'+f.type+'</div><div class="result-value '+f.severity+'" style="white-space:pre-wrap">'+f.detail+'</div></div>'});
+  results.innerHTML+='<div class="result-card danger"><div class="result-label">TOTAL THREATS</div><div class="result-value danger" style="font-family:Bebas Neue;font-size:24px;letter-spacing:3px">'+findings.filter(f=>f.severity==='danger').length+' FOUND</div></div>';
+}
+
+function proxyBrowse(){
+  const url=document.getElementById('proxy-url').value.trim();
+  const results=document.getElementById('proxy-results');
+  if(!url){results.innerHTML='<div class="result-card danger"><div class="result-label">ERROR</div><div class="result-value danger">Enter a URL</div></div>';return}
+  results.innerHTML='<div class="result-card safe"><div class="result-label">PROXIED LINK</div><div class="result-value safe">Opening through proxy. Target sees proxy IP, not yours.</div></div>';
+  window.open('https://api.allorigins.win/raw?url='+encodeURIComponent(url),'_blank');
+}
+
+async function checkIP(){
+  const info=document.getElementById('ip-info');
+  const details=document.getElementById('ip-details');
+  info.innerHTML='<div class="ip-label">CHECKING...</div><div class="ip-display">...</div>';
+  details.innerHTML='';
+  try{
+    const res=await fetch('https://ipapi.co/json/',{signal:AbortSignal.timeout(10000)});
+    const data=await res.json();
+    info.innerHTML='<div class="ip-label">YOUR CURRENT IP ADDRESS</div><div class="ip-display">'+data.ip+'</div><div class="ip-label" style="margin-top:4px">THIS IS WHAT TRACKERS SEE</div>';
+    details.innerHTML='<div class="result-card danger"><div class="result-label">WHAT THEY KNOW ABOUT YOU</div><div class="info-row"><span class="label">IP</span><span class="value">'+data.ip+'</span></div><div class="info-row"><span class="label">CITY</span><span class="value">'+(data.city||'Unknown')+'</span></div><div class="info-row"><span class="label">STATE</span><span class="value">'+(data.region||'Unknown')+'</span></div><div class="info-row"><span class="label">ZIP</span><span class="value">'+(data.postal||'Unknown')+'</span></div><div class="info-row"><span class="label">COUNTRY</span><span class="value">'+(data.country_name||'Unknown')+'</span></div><div class="info-row"><span class="label">ISP</span><span class="value">'+(data.org||'Unknown')+'</span></div><div class="info-row"><span class="label">LAT/LONG</span><span class="value">'+data.latitude+', '+data.longitude+'</span></div><div class="info-row"><span class="label">TIMEZONE</span><span class="value">'+(data.timezone||'Unknown')+'</span></div></div><div class="result-card"><div class="result-label">TO HIDE THIS</div><div class="result-value">Use a VPN. With a VPN on, this page will show the VPN location instead of yours. Set up ProtonVPN (free) at protonvpn.com</div></div>';
+  }catch(e){info.innerHTML='<div class="ip-label">ERROR</div><div class="ip-display" style="font-size:16px;color:var(--red)">'+e.message+'</div>'}
+}
+checkIP();
+</script>
+</body>
+</html>
