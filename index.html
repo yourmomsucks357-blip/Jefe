@@ -1,220 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>JEFE | Evolving Engine</title>
-    <link href="https://fonts.googleapis.com" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
-    <script src="https://cdnjs.cloudflare.com"></script>
-    <style>
-        *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-        :root{--gold:#ffd700;--bg:#060608;--gold-dim:rgba(255,215,0,0.35);--text:#d4d4d8}
-        body{background:var(--bg);color:var(--gold);font-family:'JetBrains Mono',monospace;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-        
-        #boot{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
-        #boot.hidden{display:none}
-        #boot-logo{font-family:'Bebas Neue';font-size:90px;letter-spacing:14px;color:var(--gold);text-shadow:0 0 60px rgba(255,215,0,0.4);animation:breathe 3s infinite}
-        @keyframes breathe{0%,100%{opacity:1}50%{opacity:0.7}}
-        .boot-field{width:100%;max-width:400px;margin-bottom:12px}
-        .boot-field label{display:block;font-size:9px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:6px;text-transform:uppercase}
-        .boot-field input, .boot-field select{width:100%;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:6px;color:var(--gold);padding:12px;font-family:'JetBrains Mono';outline:none}
-        #boot-btn{width:100%;max-width:400px;background:var(--gold);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue';font-size:22px;letter-spacing:4px;padding:16px;cursor:pointer}
-
-        #chat{display:none;flex-direction:column;height:100dvh}
-        #chat.active{display:flex}
-        #header{padding:12px 16px;border-bottom:1px solid rgba(255,215,0,0.1);display:flex;justify-content:space-between;align-items:center}
-        
-        #skill-vault{position:absolute;top:60px;right:10px;width:220px;max-height:300px;background:rgba(6,6,8,0.95);border:1px solid var(--gold-dim);border-radius:8px;padding:12px;font-size:10px;overflow-y:auto;z-index:100;display:none;box-shadow:0 0 20px rgba(0,0,0,0.5)}
-        #skill-vault h4{color:var(--gold);margin-bottom:10px;border-bottom:1px solid var(--gold-dim);padding-bottom:4px;letter-spacing:2px}
-        .skill-item{color:var(--text);margin-bottom:8px;padding-left:12px;position:relative;line-height:1.4}
-        .skill-item:before{content:'>';position:absolute;left:0;color:var(--gold)}
-
-        #messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
-        .msg{max-width:90%;padding:12px 16px;border-radius:10px;font-size:14px;line-height:1.6;word-break:break-word}
-        .user{align-self:flex-end;background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.2);color:#ffe680}
-        .jefe{align-self:flex-start;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);color:var(--text)}
-        .thumb{display:block;max-width:200px;border-radius:8px;margin-top:10px;border:1px solid var(--gold-dim)}
-        pre{background:#000 !important;padding:12px;border-radius:6px;margin:10px 0;overflow-x:auto;border:1px solid rgba(255,215,0,0.1)}
-
-        .controls{padding:14px;display:flex;flex-direction:column;gap:10px;border-top:1px solid rgba(255,215,0,0.1);background:var(--bg)}
-        .bar{display:flex;gap:10px;align-items:center}
-        #msg-input{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:8px;color:#fff;padding:12px;font-family:'JetBrains Mono';outline:none;resize:none;max-height:150px}
-        .btn-icon{background:rgba(255,215,0,0.1);border:1px solid var(--gold-dim);color:var(--gold);padding:10px;border-radius:8px;cursor:pointer;font-size:12px}
-        #send-btn{background:var(--gold);border:none;border-radius:8px;padding:0 20px;font-family:'Bebas Neue';font-size:18px;cursor:pointer;min-height:45px}
-        #dot{width:8px;height:8px;border-radius:50%;background:#5ce0a8}
-        #dot.busy{animation:pulse 1s infinite;background:var(--gold)}
-        @keyframes pulse{0%{opacity:1}50%{opacity:0.3}}
-    </style>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+   <title>JEFE | Evolving Pro</title>
+   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+   <style>
+       *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+       :root{--gold:#ffd700;--bg:#060608;--gold-dim:rgba(255,215,0,0.35);--text:#d4d4d8}
+       body{background:var(--bg);color:var(--gold);font-family:'JetBrains Mono',monospace;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+       #boot{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+       #boot.hidden{display:none}
+       #boot-logo{font-family:'Bebas Neue';font-size:90px;letter-spacing:14px;color:var(--gold);text-shadow:0 0 60px rgba(255,215,0,0.4);animation:breathe 3s infinite}
+       @keyframes breathe{0%,100%{opacity:1}50%{opacity:0.7}}
+       .boot-field{width:100%;max-width:400px;margin-bottom:12px}
+       .boot-field label{display:block;font-size:9px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:6px;text-transform:uppercase}
+       .boot-field input,.boot-field select{width:100%;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:6px;color:var(--gold);padding:12px;font-family:'JetBrains Mono';outline:none}
+       #boot-btn{width:100%;max-width:400px;background:var(--gold);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue';font-size:22px;letter-spacing:4px;padding:16px;cursor:pointer;margin-top:6px}
+       #chat{display:none;flex-direction:column;height:100dvh}
+       #chat.active{display:flex}
+       #header{padding:12px 16px;border-bottom:1px solid rgba(255,215,0,0.1);display:flex;justify-content:space-between;align-items:center}
+       #skill-vault{position:absolute;top:60px;right:10px;width:220px;max-height:300px;background:rgba(6,6,8,0.95);border:1px solid var(--gold-dim);border-radius:8px;padding:12px;font-size:10px;overflow-y:auto;z-index:100;display:none;box-shadow:0 0 20px rgba(0,0,0,0.5)}
+       #skill-vault h4{color:var(--gold);margin-bottom:10px;border-bottom:1px solid var(--gold-dim);padding-bottom:4px;letter-spacing:2px}
+       .skill-item{color:var(--text);margin-bottom:8px;padding-left:12px;position:relative;line-height:1.4}
+       .skill-item:before{content:'>';position:absolute;left:0;color:var(--gold)}
+       #messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+       .msg{max-width:90%;padding:12px 16px;border-radius:10px;font-size:14px;line-height:1.6;word-break:break-word}
+       .user{align-self:flex-end;background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.2);color:#ffe680}
+       .jefe{align-self:flex-start;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);color:var(--text)}
+       .thumb{display:block;max-width:200px;border-radius:8px;margin-top:10px;border:1px solid var(--gold-dim)}
+       pre{background:#000 !important;padding:12px;border-radius:6px;margin:10px 0;overflow-x:auto;border:1px solid rgba(255,215,0,0.1)}
+       .controls{padding:14px;display:flex;flex-direction:column;gap:10px;border-top:1px solid rgba(255,215,0,0.1);background:var(--bg)}
+       .bar{display:flex;gap:10px;align-items:center}
+       #msg-input{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:8px;color:#fff;padding:12px;font-family:'JetBrains Mono';outline:none;resize:none;max-height:150px}
+       .btn-icon{background:rgba(255,215,0,0.1);border:1px solid var(--gold-dim);color:var(--gold);padding:10px;border-radius:8px;cursor:pointer;font-size:12px}
+       #send-btn{background:var(--gold);border:none;border-radius:8px;padding:0 20px;font-family:'Bebas Neue';font-size:18px;cursor:pointer;min-height:45px}
+       #dot{width:8px;height:8px;border-radius:50%;background:#5ce0a8}
+       #dot.busy{animation:pulse 1s infinite;background:var(--gold)}
+       @keyframes pulse{0%{opacity:1}50%{opacity:0.3}}
+   </style>
 </head>
 <body>
-
 <div id="boot">
-    <div id="boot-logo">JEFE</div>
-    <div class="boot-field"><label>Remote Server URL</label><input type="url" id="srv-url" value="http://localhost:11434"></div>
-    <div class="boot-field"><label>Base64 Auth (Optional)</label><input type="password" id="srv-auth"></div>
-    <div class="boot-field">
-        <label>Engine</label>
-        <select id="model-pick">
-            <option value="llama3.3:8b">Llama 3.3 8B (Fast)</option>
-            <option value="llama3.2-vision">Llama 3.2 Vision (Analyze Images)</option>
-            <option value="qwen3:32b">Qwen 32B (Elite)</option>
-        </select>
-    </div>
-    <button id="boot-btn">INITIALIZE EVOLUTION</button>
+   <div id="boot-logo">JEFE</div>
+   <div class="boot-field"><label>Remote Server URL</label><input type="url" id="srv-url" value="http://localhost:11434"></div>
+   <div class="boot-field"><label>Base64 Auth (Optional)</label><input type="password" id="srv-auth"></div>
+   <div class="boot-field">
+       <label>Engine</label>
+       <select id="model-pick">
+           <option value="llama3.3:8b">Llama 3.3 8B (Fast)</option>
+           <option value="llama3.2-vision">Llama 3.2 Vision (Analyze Images)</option>
+           <option value="qwen3:32b">Qwen 32B (Elite)</option>
+       </select>
+   </div>
+   <button id="boot-btn">INITIALIZE EVOLUTION</button>
 </div>
-
 <div id="chat">
-    <div id="header">
-        <div style="font-family:'Bebas Neue';font-size:24px;letter-spacing:6px">JEFE // EVOLVED</div>
-        <div style="display:flex;gap:10px;align-items:center">
-            <div id="dot"></div>
-            <button onclick="toggleVault()" class="btn-icon">SKILL_VAULT</button>
-        </div>
-    </div>
-
-    <div id="skill-vault">
-        <h4>NEURAL_VAULT</h4>
-        <div id="skill-list"></div>
-        <button onclick="clearSkills()" style="background:none;border:none;color:red;font-size:8px;margin-top:10px;cursor:pointer">WIPE_SKILLS</button>
-    </div>
-    
-    <div id="messages"></div>
-
-    <div id="input-area" class="controls">
-        <div id="preview" style="display:none"><img id="img-p" style="height:40px;border:1px solid var(--gold);border-radius:4px"></div>
-        <div class="bar">
-            <button onclick="el('img-in').click()" class="btn-icon">📷</button>
-            <input type="file" id="img-in" style="display:none" accept="image/*">
-            <textarea id="msg-input" placeholder="Teach or Command..." rows="1"></textarea>
-            <button id="send-btn">SEND</button>
-        </div>
-    </div>
+   <div id="header">
+       <div style="font-family:'Bebas Neue';font-size:24px;letter-spacing:6px">JEFE // EVOLVED</div>
+       <div style="display:flex;gap:10px;align-items:center">
+           <div id="dot"></div>
+           <button onclick="toggleVault()" class="btn-icon">SKILL_VAULT</button>
+       </div>
+   </div>
+   <div id="skill-vault">
+       <h4>NEURAL_VAULT</h4>
+       <div id="skill-list"></div>
+       <button onclick="clearSkills()" style="background:none;border:none;color:red;font-size:8px;margin-top:10px;cursor:pointer">WIPE_SKILLS</button>
+   </div>
+   <div id="messages"></div>
+   <div id="input-area" class="controls">
+       <div id="preview" style="display:none"><img id="img-p" style="height:40px;border:1px solid var(--gold);border-radius:4px"></div>
+       <div class="bar">
+           <button onclick="el('img-in').click()" class="btn-icon">📷</button>
+           <input type="file" id="img-in" style="display:none" accept="image/*">
+           <textarea id="msg-input" placeholder="Teach or Command..." rows="1"></textarea>
+           <button id="send-btn">SEND</button>
+       </div>
+   </div>
 </div>
-
 <script>
-    const el = id => document.getElementById(id);
-    let activeImg = null;
-    
-    // --- PERSISTENT EVOLUTION STATE ---
-    let JEFE_BRAIN = {
-        persona: localStorage.getItem('j_persona') || "You are JEFE, an elite analytical engine. Never apologize. Be technical. Use Markdown for all tables/code.",
-        skills: JSON.parse(localStorage.getItem('j_skills')) || []
-    };
-
-    window.onload = () => { 
-        if(localStorage.getItem('j_logs')) el('messages').innerHTML = localStorage.getItem('j_logs');
-        updateSkillVault();
-        el('messages').scrollTo(0, 1e7);
-    };
-
-    function toggleVault() {
-        const v = el('skill-vault');
-        v.style.display = v.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function updateSkillVault() {
-        el('skill-list').innerHTML = JEFE_BRAIN.skills.length ? 
-            JEFE_BRAIN.skills.map(s => `<div class="skill-item">${s}</div>`).join('') :
-            '<div style="color:var(--gold-dim)">Empty Context</div>';
-        localStorage.setItem('j_skills', JSON.stringify(JEFE_BRAIN.skills));
-        localStorage.setItem('j_persona', JEFE_BRAIN.persona);
-    }
-
-    function clearSkills() {
-        JEFE_BRAIN.skills = [];
-        updateSkillVault();
-        appendSysMsg("NEURAL_VAULT_PURGED");
-    }
-
-    el('img-in').onchange = (e) => {
-        const reader = new FileReader();
-        reader.onload = (re) => {
-            activeImg = re.target.result.split(',')[1];
-            el('img-p').src = re.target.result;
-            el('preview').style.display = 'block';
-        };
-        reader.readAsDataURL(e.target.files[0]);
-    };
-
-    el('boot-btn').onclick = () => { el('boot').classList.add('hidden'); el('chat').classList.add('active'); };
-
-    async function askJefe() {
-        const text = el('msg-input').value.trim();
-        if(!text && !activeImg) return;
-
-        // SELF-EVOLUTION CAPTURE
-        if (text.toLowerCase().includes("change your personality to")) {
-            JEFE_BRAIN.persona = "You are now: " + text.split(/to/i)[1].trim();
-            updateSkillVault();
-            appendSysMsg("IDENTITY_REWRITTEN");
-        }
-        if (text.toLowerCase().includes("learn this skill:")) {
-            const skill = text.split(/learn this skill:/i)[1].trim();
-            JEFE_BRAIN.skills.push(skill);
-            updateSkillVault();
-            appendSysMsg(`SKILL_LOCKED: ${skill.substring(0,10)}...`);
-        }
-
-        const uMsg = document.createElement('div');
-        uMsg.className = 'msg user'; uMsg.innerText = text;
-        if(activeImg) {
-            const img = document.createElement('img');
-            img.src = el('img-p').src; img.className = 'thumb';
-            uMsg.appendChild(img);
-        }
-        el('messages').appendChild(uMsg);
-        el('msg-input').value = '';
-        el('preview').style.display = 'none';
-        el('dot').classList.add('busy');
-
-        const jMsg = document.createElement('div');
-        jMsg.className = 'msg jefe'; el('messages').appendChild(jMsg);
-        
-        const fullSystem = `${JEFE_BRAIN.persona}\n\nRETAINED_KNOWLEDGE:\n${JEFE_BRAIN.skills.join('\n')}`;
-        const headers = { "Content-Type": "application/json" };
-        if(el('srv-auth').value) headers["Authorization"] = `Basic ${el('srv-auth').value}`;
-
-        try {
-            const res = await fetch(`${el('srv-url').value}/api/generate`, {
-                method: 'POST', headers,
-                body: JSON.stringify({ 
-                    model: el('model-pick').value, 
-                    system: fullSystem,
-                    prompt: text, 
-                    stream: true, 
-                    images: activeImg ? [activeImg] : [] 
-                })
-            });
-            const reader = res.body.getReader(); let full = "";
-            while (true) {
-                const {done, value} = await reader.read(); if(done) break;
-                new TextDecoder().decode(value).split('\n').filter(Boolean).forEach(l => {
-                    try {
-                        const json = JSON.parse(l);
-                        if(json.response) { 
-                            full += json.response; 
-                            jMsg.innerHTML = marked.parse(full); 
-                            jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement); 
-                        }
-                    } catch(e){}
-                });
-                el('messages').scrollTo(0, 1e7);
-            }
-            activeImg = null; localStorage.setItem('j_logs', el('messages').innerHTML);
-        } catch (e) { jMsg.innerText = "LINK_FAILURE: Check Server/CORS."; }
-        finally { el('dot').classList.remove('busy'); }
-    }
-
-    function appendSysMsg(txt) {
-        const d = document.createElement('div');
-        d.style.cssText = "color:var(--gold-dim); font-size:9px; text-align:center; margin:5px; font-weight:bold";
-        d.innerText = `[${txt}]`; el('messages').appendChild(d);
-    }
-
-    el('send-btn').onclick = askJefe;
-    el('msg-input').onkeydown = e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askJefe(); }};
+   const el = id => document.getElementById(id);
+   let activeImg = null;
+   let JEFE_BRAIN = {
+       persona: localStorage.getItem('j_persona') || "You are JEFE, an elite analytical engine. Never apologize. Be technical. Use Markdown for all tables/code.",
+       skills: JSON.parse(localStorage.getItem('j_skills')) || []
+   };
+   window.onload = () => {
+       if(localStorage.getItem('j_logs')) el('messages').innerHTML = localStorage.getItem('j_logs');
+       updateSkillVault();
+       el('messages').scrollTo(0, 1e7);
+   };
+   function toggleVault() {
+       const v = el('skill-vault');
+       v.style.display = v.style.display === 'block' ? 'none' : 'block';
+   }
+   function updateSkillVault() {
+       el('skill-list').innerHTML = JEFE_BRAIN.skills.length ?
+           JEFE_BRAIN.skills.map(s => '<div class="skill-item">'+s+'</div>').join('') :
+           '<div style="color:var(--gold-dim)">Empty Context</div>';
+       localStorage.setItem('j_skills', JSON.stringify(JEFE_BRAIN.skills));
+       localStorage.setItem('j_persona', JEFE_BRAIN.persona);
+   }
+   function clearSkills() {
+       JEFE_BRAIN.skills = [];
+       updateSkillVault();
+       appendSysMsg("NEURAL_VAULT_PURGED");
+   }
+   el('img-in').onchange = (e) => {
+       const reader = new FileReader();
+       reader.onload = (re) => {
+           activeImg = re.target.result.split(',')[1];
+           el('img-p').src = re.target.result;
+           el('preview').style.display = 'block';
+       };
+       reader.readAsDataURL(e.target.files[0]);
+   };
+   el('boot-btn').onclick = () => { el('boot').classList.add('hidden'); el('chat').classList.add('active'); };
+   async function askJefe() {
+       const text = el('msg-input').value.trim();
+       if(!text && !activeImg) return;
+       if (text.toLowerCase().includes("change your personality to")) {
+           JEFE_BRAIN.persona = "You are now: " + text.split(/to/i).slice(1).join('to').trim();
+           updateSkillVault();
+           appendSysMsg("IDENTITY_REWRITTEN");
+       }
+       if (text.toLowerCase().includes("learn this skill:")) {
+           const skill = text.split(/skill:/i)[1].trim();
+           JEFE_BRAIN.skills.push(skill);
+           updateSkillVault();
+           appendSysMsg("SKILL_LOCKED");
+       }
+       const uMsg = document.createElement('div');
+       uMsg.className = 'msg user'; uMsg.innerText = text;
+       if(activeImg) {
+           const img = document.createElement('img');
+           img.src = el('img-p').src; img.className = 'thumb';
+           uMsg.appendChild(img);
+       }
+       el('messages').appendChild(uMsg);
+       el('msg-input').value = '';
+       el('preview').style.display = 'none';
+       el('dot').classList.add('busy');
+       const jMsg = document.createElement('div');
+       jMsg.className = 'msg jefe'; el('messages').appendChild(jMsg);
+       const fullSystem = JEFE_BRAIN.persona + "\n\nRETAINED_KNOWLEDGE:\n" + JEFE_BRAIN.skills.join('\n');
+       const headers = { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" };
+       if(el('srv-auth').value) headers["Authorization"] = "Basic " + el('srv-auth').value;
+       try {
+           const res = await fetch(el('srv-url').value + "/api/generate", {
+               method: 'POST', headers: headers,
+               body: JSON.stringify({
+                   model: el('model-pick').value,
+                   system: fullSystem,
+                   prompt: text,
+                   stream: true,
+                   images: activeImg ? [activeImg] : []
+               })
+           });
+           const reader = res.body.getReader(); let full = "";
+           while (true) {
+               const chunk = await reader.read();
+               if(chunk.done) break;
+               new TextDecoder().decode(chunk.value).split('\n').filter(Boolean).forEach(function(l) {
+                   try {
+                       const json = JSON.parse(l);
+                       if(json.response) {
+                           full += json.response;
+                           jMsg.innerHTML = marked.parse(full);
+                           jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
+                       }
+                   } catch(e){}
+               });
+               el('messages').scrollTo(0, 1e7);
+           }
+           activeImg = null; localStorage.setItem('j_logs', el('messages').innerHTML);
+       } catch (e) { jMsg.innerText = "LINK_FAILURE: Check Server/CORS."; }
+       finally { el('dot').classList.remove('busy'); }
+   }
+   function appendSysMsg(txt) {
+       const d = document.createElement('div');
+       d.style.cssText = "color:var(--gold-dim); font-size:9px; text-align:center; margin:5px; font-weight:bold";
+       d.innerText = '[' + txt + ']'; el('messages').appendChild(d);
+   }
+   el('send-btn').onclick = askJefe;
+   el('msg-input').onkeydown = function(e) { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askJefe(); }};
 </script>
 </body>
 </html>
