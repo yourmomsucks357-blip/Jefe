@@ -30,7 +30,7 @@
 
     <script>
         const CONFIG = {
-            // FIXED: Added /api/generate to the endpoint
+            // Your active ngrok URL + the generate path
             API_URL: 'https://toya-unoperatable-kathaleen.ngrok-free.dev',
             MODEL: 'llama3'
         };
@@ -54,7 +54,8 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': '69420' 
+                        // THE CRITICAL FIX: This bypasses the ngrok warning
+                        'ngrok-skip-browser-warning': 'true' 
                     },
                     body: JSON.stringify({
                         model: CONFIG.MODEL,
@@ -73,7 +74,7 @@
             } catch (error) {
                 console.error('Fetch error:', error);
                 botMsgDiv.className += ' error';
-                botMsgDiv.innerHTML = `<strong>CONNECTION FAILED</strong><br>${error.message}`;
+                botMsgDiv.innerHTML = `<strong>LINK_FAILURE</strong><br>${error.message}`;
             } finally {
                 btn.disabled = false;
                 chat.scrollTop = chat.scrollHeight;
