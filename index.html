@@ -29,11 +29,10 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
         const CONFIG = {
-            // Your generic ngrok URL
+            // FIXED: Added /api/generate to the endpoint
             API_URL: 'https://toya-unoperatable-kathaleen.ngrok-free.dev',
-            MODEL: 'llama3' // Change this to the model you have installed (e.g., 'mistral', 'llama2')
+            MODEL: 'llama3'
         };
 
         async function sendMessage() {
@@ -44,12 +43,10 @@
 
             if (!text) return;
 
-            // UI Updates
             appendMessage(text, 'user');
             input.value = '';
             btn.disabled = true;
             
-            // Create placeholder for bot response
             const botMsgDiv = appendMessage('Thinking...', 'bot');
 
             try {
@@ -57,7 +54,6 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        // FIX 1: This header tells ngrok to skip the "Visit Site" warning page
                         'ngrok-skip-browser-warning': '69420' 
                     },
                     body: JSON.stringify({
@@ -68,7 +64,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Server Error: ${response.status} ${response.statusText}`);
+                    throw new Error(`Server Error: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -76,18 +72,8 @@
 
             } catch (error) {
                 console.error('Fetch error:', error);
-                
-                if (error.message.includes('Failed to fetch')) {
-                    botMsgDiv.className += ' error';
-                    botMsgDiv.innerHTML = `
-                        <strong>CONNECTION FAILED (CORS/Network)</strong><br>
-                        1. Is Ollama running?<br>
-                        2. Did you set OLLAMA_ORIGINS?<br>
-                        3. Check console (F12) for exact error.
-                    `;
-                } else {
-                    botMsgDiv.innerText = `Error: ${error.message}`;
-                }
+                botMsgDiv.className += ' error';
+                botMsgDiv.innerHTML = `<strong>CONNECTION FAILED</strong><br>${error.message}`;
             } finally {
                 btn.disabled = false;
                 chat.scrollTop = chat.scrollHeight;
