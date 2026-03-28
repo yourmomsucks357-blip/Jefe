@@ -1,4 +1,4 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -160,7 +160,7 @@ DOCTYPE html>
       if (!gk && !ck && !ok) { alert("Enter at least one API key"); return; }
       PROVIDERS = [];
       if (gk) { PROVIDERS.push({name:"GROQ",url:"https://api.groq.com/openai/v1/chat/completions",key:gk,model:"llama-3.3-70b-versatile"}); localStorage.setItem('j_key_groq',gk); }
-      if (ck) { PROVIDERS.push({name:"CEREBRAS",url:"https://api.cerebras.ai/v1/chat/completions",key:ck,model:"llama-3.3-70b"}); localStorage.setItem('j_key_cerebras',ck); }
+      if (ck) { PROVIDERS.push({name:"CEREBRAS",url:"https://api.cerebras.ai/v1/chat/completions",key:ck,model:"llama3.1-8b"}); localStorage.setItem('j_key_cerebras',ck); }
       if (ok) { PROVIDERS.push({name:"OPENROUTER",url:"https://openrouter.ai/api/v1/chat/completions",key:ok,model:"meta-llama/llama-3.3-70b-instruct:free"}); localStorage.setItem('j_key_openrouter',ok); }
       el('boot').classList.add('hidden');
       el('chat').classList.add('active');
