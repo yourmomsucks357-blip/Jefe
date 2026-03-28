@@ -18,7 +18,7 @@
       @keyframes breathe{0%,100%{opacity:1}50%{opacity:0.7}}
       .boot-field{width:100%;max-width:400px;margin-bottom:12px}
       .boot-field label{display:block;font-size:9px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:6px;text-transform:uppercase}
-      .boot-field input, .boot-field select{width:100%;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:6px;color:var(--gold);padding:12px;font-family:'JetBrains Mono';outline:none}
+      .boot-field input,.boot-field select{width:100%;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:6px;color:var(--gold);padding:12px;font-family:'JetBrains Mono';outline:none}
       .boot-field input[type="range"]{padding:0;background:transparent;border:none;-webkit-appearance:none;width:100%;height:6px;margin-top:8px}
       .boot-field input[type="range"]::-webkit-slider-runnable-track{height:6px;background:rgba(255,215,0,0.15);border-radius:3px}
       .boot-field input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--gold);margin-top:-8px;box-shadow:0 0 12px rgba(255,215,0,0.5)}
@@ -52,7 +52,7 @@
 <body>
 <div id="boot">
   <div id="boot-logo">JEFE</div>
-  <div class="boot-field"><label>Groq API Key</label><input type="password" id="srv-url" value="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"></div>
+  <div class="boot-field"><label>Groq API Key</label><input type="password" id="api-key" value="" placeholder="Paste your Groq API key here"></div>
   <div class="boot-field">
       <label>Engine</label>
       <select id="model-pick">
@@ -100,6 +100,7 @@
   var el = function(id) { return document.getElementById(id); };
   var activeImg = null;
   var NUM_CTX = 8192;
+  var GROQ_KEY = "";
   var ctxSlider = el('ctx-slider');
   var ctxLabel = el('ctx-label');
   var ctxHintEl = el('ctx-hint');
@@ -117,6 +118,7 @@
   };
   window.onload = function() {
       if(localStorage.getItem('j_logs')) el('messages').innerHTML = localStorage.getItem('j_logs');
+      if(localStorage.getItem('j_groq_key')) el('api-key').value = localStorage.getItem('j_groq_key');
       updateSkillVault();
       updateCtxDisplay();
       el('messages').scrollTo(0, 1e7);
@@ -152,7 +154,13 @@
       };
       reader.readAsDataURL(e.target.files[0]);
   };
-  el('boot-btn').onclick = function() { el('boot').classList.add('hidden'); el('chat').classList.add('active'); };
+  el('boot-btn').onclick = function() {
+      GROQ_KEY = el('api-key').value.trim();
+      if (!GROQ_KEY) { alert("Enter your Groq API Key"); return; }
+      localStorage.setItem('j_groq_key', GROQ_KEY);
+      el('boot').classList.add('hidden');
+      el('chat').classList.add('active');
+  };
   async function askJefe() {
       var text = el('msg-input').value.trim();
       if(!text && !activeImg) return;
@@ -181,8 +189,7 @@
       var jMsg = document.createElement('div');
       jMsg.className = 'msg jefe'; el('messages').appendChild(jMsg);
       var fullSystem = JEFE_BRAIN.persona + "\n\nRETAINED_KNOWLEDGE:\n" + JEFE_BRAIN.skills.join('\n');
-      var apiKey = el('srv-url').value;
-      var headers = { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey };
+      var headers = { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_KEY };
       try {
           var res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
               method: 'POST', headers: headers,
@@ -196,7 +203,13 @@
                   max_tokens: NUM_CTX
               })
           });
-          var reader = res.body.getReader(); var full = "";
+          if (!res.ok) {
+              var errData = await res.json();
+              jMsg.innerText = "GROQ ERROR " + res.status + ": " + (errData.error ? errData.error.message : "Unknown error");
+              return;
+          }
+          var reader = res.body.getReader();
+          var full = "";
           while (true) {
               var chunk = await reader.read();
               if(chunk.done) break;
@@ -215,14 +228,12 @@
                           jMsg.innerHTML = marked.parse(full);
                           jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
                       }
-                      if (json.error) {
-                          jMsg.innerText = "GROQ ERROR: " + json.error.message;
-                      }
                   } catch(e){}
               }
               el('messages').scrollTo(0, 1e7);
           }
-          activeImg = null; localStorage.setItem('j_logs', el('messages').innerHTML);
+          activeImg = null;
+          localStorage.setItem('j_logs', el('messages').innerHTML);
       } catch (e) { jMsg.innerText = "LINK_FAILURE: " + e.message; }
       finally { el('dot').classList.remove('busy'); }
   }
