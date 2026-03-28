@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -57,11 +57,11 @@
   <div class="boot-field"><label>Cerebras API Key (Backup 1)</label><input type="password" id="key-cerebras" value="" placeholder="csk-..."></div>
   <div class="boot-field"><label>OpenRouter API Key (Backup 2)</label><input type="password" id="key-openrouter" value="" placeholder="sk-or-..."></div>
   <div class="boot-field">
-      <label>Context Window (Memory Depth)</label>
-      <input type="range" id="ctx-slider" min="1024" max="8192" step="1024" value="4096">
+      <label>Max Response Length</label>
+      <input type="range" id="ctx-slider" min="512" max="4096" step="512" value="2048">
       <div class="ctx-display">
-          <span class="ctx-val" id="ctx-label">4,096</span>
-          <span class="ctx-hint" id="ctx-hint">~3,072 WORDS</span>
+          <span class="ctx-val" id="ctx-label">2,048</span>
+          <span class="ctx-hint" id="ctx-hint">~1,536 WORDS</span>
       </div>
   </div>
   <button id="boot-btn">INITIALIZE EVOLUTION</button>
@@ -96,8 +96,7 @@
 <script>
   var el = function(id) { return document.getElementById(id); };
   var activeImg = null;
-  var NUM_CTX = 4096;
-  var renderTimer = null;
+  var NUM_CTX = 2048;
   var PROVIDERS = [];
   var ctxSlider = el('ctx-slider');
   var ctxLabel = el('ctx-label');
@@ -167,15 +166,6 @@
       el('chat').classList.add('active');
       el('provider-badge').innerText = PROVIDERS[0].name;
   };
-  function throttledRender(jMsg, full) {
-      if (renderTimer) return;
-      renderTimer = setTimeout(function() {
-          renderTimer = null;
-          jMsg.innerHTML = marked.parse(full);
-          jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
-          el('messages').scrollTo(0, 1e7);
-      }, 100);
-  }
   async function tryProvider(providerIndex, fullSystem, text) {
       var p = PROVIDERS[providerIndex];
       el('provider-badge').innerText = p.name;
@@ -184,25 +174,31 @@
           headers["HTTP-Referer"] = "https://yourmomsucks357-blip.github.io/Jefe/";
           headers["X-Title"] = "JEFE";
       }
-      var bodyObj = {
-          model: p.model,
-          messages: [
-              { role: "system", content: fullSystem },
-              { role: "user", content: text }
-          ],
-          stream: true,
-          max_tokens: NUM_CTX
-      };
       var res = await fetch(p.url, {
           method: 'POST',
           headers: headers,
-          body: JSON.stringify(bodyObj)
+          body: JSON.stringify({
+              model: p.model,
+              messages: [
+                  { role: "system", content: fullSystem },
+                  { role: "user", content: text }
+              ],
+              stream: false,
+              max_tokens: NUM_CTX
+          })
       });
       if (!res.ok) {
           var errText = await res.text();
           throw new Error(p.name + " " + res.status + ": " + errText);
       }
-      return res;
+      var data = await res.json();
+      if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+          return data.choices[0].message.content;
+      }
+      if (data.error) {
+          throw new Error(p.name + ": " + data.error.message);
+      }
+      throw new Error(p.name + ": No response content");
   }
   async function askJefe() {
       var text = el('msg-input').value.trim();
@@ -230,13 +226,16 @@
       el('preview').style.display = 'none';
       el('dot').classList.add('busy');
       var jMsg = document.createElement('div');
-      jMsg.className = 'msg jefe'; el('messages').appendChild(jMsg);
+      jMsg.className = 'msg jefe';
+      jMsg.innerText = "PROCESSING...";
+      el('messages').appendChild(jMsg);
+      el('messages').scrollTo(0, 1e7);
       var fullSystem = JEFE_BRAIN.persona + "\n\nRETAINED_KNOWLEDGE:\n" + JEFE_BRAIN.skills.join('\n');
-      var res = null;
+      var responseText = null;
       var lastError = "";
       for (var p = 0; p < PROVIDERS.length; p++) {
           try {
-              res = await tryProvider(p, fullSystem, text);
+              responseText = await tryProvider(p, fullSystem, text);
               break;
           } catch(e) {
               lastError = e.message;
@@ -244,46 +243,16 @@
               continue;
           }
       }
-      if (!res) {
+      if (!responseText) {
           jMsg.innerText = "ALL PROVIDERS DOWN: " + lastError;
-          el('dot').classList.remove('busy');
-          return;
+      } else {
+          jMsg.innerHTML = marked.parse(responseText);
+          jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
       }
-      try {
-          var reader = res.body.getReader();
-          var full = "";
-          var buffer = "";
-          while (true) {
-              var chunk = await reader.read();
-              if(chunk.done) break;
-              buffer += new TextDecoder().decode(chunk.value);
-              var lines = buffer.split('\n');
-              buffer = lines.pop();
-              for (var i = 0; i < lines.length; i++) {
-                  var line = lines[i].trim();
-                  if (!line) continue;
-                  if (line === "data: [DONE]") continue;
-                  if (line.indexOf("data: ") === 0) {
-                      line = line.substring(6);
-                  }
-                  try {
-                      var json = JSON.parse(line);
-                      if (json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
-                          full += json.choices[0].delta.content;
-                          throttledRender(jMsg, full);
-                      }
-                  } catch(e){}
-              }
-          }
-          if (full) {
-              jMsg.innerHTML = marked.parse(full);
-              jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
-              el('messages').scrollTo(0, 1e7);
-          }
-          activeImg = null;
-          localStorage.setItem('j_logs', el('messages').innerHTML);
-      } catch (e) { jMsg.innerText = "STREAM ERROR: " + e.message; }
-      finally { el('dot').classList.remove('busy'); }
+      activeImg = null;
+      localStorage.setItem('j_logs', el('messages').innerHTML);
+      el('messages').scrollTo(0, 1e7);
+      el('dot').classList.remove('busy');
   }
   function appendSysMsg(txt) {
       var d = document.createElement('div');
