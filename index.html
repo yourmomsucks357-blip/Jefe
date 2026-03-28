@@ -1,65 +1,266 @@
-import os
-import logging
-import threading
-import time
-from typing import Dict, List
-
-# Enable logging
-logging.basicConfig(level=logging.INFO)
-
-# Set up process management
-def process_management():
-    # Allocate resources (CPU, RAM, Disk)
-    resources = {"cpu": 2, "ram": 4 * 1024, "disk": 10 * 1024}
-    logging.info(f"Allocated resources: {resources}")
-
-    # Manage memory using dynamic allocation
-    def dynamic_memory_allocation(size):
-        memory = bytearray(size)
-        return memory
-
-    # Initialize memory allocation
-    memory = dynamic_memory_allocation(1024 * 1024)
-
-    # Manage database connections
-    def manage_database_connections():
-        # Establish connections to databases
-        connections = [conn for conn in ["db1", "db2"] if conn]
-
-        # Minimize query overhead
-        def optimized_query_execution(query):
-            # Execute query with minimal overhead
-            start_time = time.time()
-            result = query.execute()
-            end_time = time.time()
-            logging.info(f"Query executed in {end_time - start_time} seconds")
-            return result
-
-        # Query execution
-        query = "SELECT * FROM table_name"
-        result = optimized_query_execution(query)
-        logging.info(f"Query result: {result}")
-
-    # Initialize database connections and query execution
-    manage_database_connections()
-
-# Create a thread for process management
-process_management_thread = threading.Thread(target=process_management)
-process_management_thread.start()
-
-# Run JEFE in an infinite loop without crashing or token issues
-def run_jefe():
-    while True:
-        try:
-            # Run main JEFE logic
-            logic = "jeffe_logic"
-            logging.info(f"Running JEFE logic: {logic}")
-
-        except Exception as e:
-            # Log error and continue running
-            logging.error(f"Error: {e}")
-            continue
-
-# Run JEFE in a separate thread to prevent crashes
-jeffe_thread = threading.Thread(target=run_jefe)
-jeffe_thread.start()
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>JEFE | Evolving Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+      *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+      :root{--gold:#ffd700;--bg:#060608;--gold-dim:rgba(255,215,0,0.35);--text:#d4d4d8}
+      body{background:var(--bg);color:var(--gold);font-family:'JetBrains Mono',monospace;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+      #boot{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+      #boot.hidden{display:none}
+      #boot-logo{font-family:'Bebas Neue';font-size:90px;letter-spacing:14px;color:var(--gold);text-shadow:0 0 60px rgba(255,215,0,0.4);animation:breathe 3s infinite}
+      @keyframes breathe{0%,100%{opacity:1}50%{opacity:0.7}}
+      .boot-field{width:100%;max-width:400px;margin-bottom:12px}
+      .boot-field label{display:block;font-size:9px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:6px;text-transform:uppercase}
+      .boot-field input,.boot-field select{width:100%;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:6px;color:var(--gold);padding:12px;font-family:'JetBrains Mono';outline:none;font-size:11px}
+      .boot-field input[type="range"]{padding:0;background:transparent;border:none;-webkit-appearance:none;width:100%;height:6px;margin-top:8px}
+      .boot-field input[type="range"]::-webkit-slider-runnable-track{height:6px;background:rgba(255,215,0,0.15);border-radius:3px}
+      .boot-field input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--gold);margin-top:-8px;box-shadow:0 0 12px rgba(255,215,0,0.5)}
+      .ctx-display{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+      .ctx-val{font-size:18px;color:var(--gold);font-weight:bold;font-family:'Bebas Neue';letter-spacing:3px}
+      .ctx-hint{font-size:8px;color:var(--gold-dim);letter-spacing:1px}
+      #boot-btn{width:100%;max-width:400px;background:var(--gold);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue';font-size:22px;letter-spacing:4px;padding:16px;cursor:pointer;margin-top:6px}
+      #chat{display:none;flex-direction:column;height:100dvh}
+      #chat.active{display:flex}
+      #header{padding:12px 16px;border-bottom:1px solid rgba(255,215,0,0.1);display:flex;justify-content:space-between;align-items:center}
+      #provider-badge{font-size:8px;color:var(--gold-dim);letter-spacing:1px}
+      #skill-vault{position:absolute;top:60px;right:10px;width:220px;max-height:300px;background:rgba(6,6,8,0.95);border:1px solid var(--gold-dim);border-radius:8px;padding:12px;font-size:10px;overflow-y:auto;z-index:100;display:none;box-shadow:0 0 20px rgba(0,0,0,0.5)}
+      #skill-vault h4{color:var(--gold);margin-bottom:10px;border-bottom:1px solid var(--gold-dim);padding-bottom:4px;letter-spacing:2px}
+      .skill-item{color:var(--text);margin-bottom:8px;padding-left:12px;position:relative;line-height:1.4}
+      .skill-item:before{content:'>';position:absolute;left:0;color:var(--gold)}
+      #messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+      .msg{max-width:90%;padding:12px 16px;border-radius:10px;font-size:14px;line-height:1.6;word-break:break-word}
+      .user{align-self:flex-end;background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.2);color:#ffe680}
+      .jefe{align-self:flex-start;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);color:var(--text)}
+      .thumb{display:block;max-width:200px;border-radius:8px;margin-top:10px;border:1px solid var(--gold-dim)}
+      pre{background:#000 !important;padding:12px;border-radius:6px;margin:10px 0;overflow-x:auto;border:1px solid rgba(255,215,0,0.1)}
+      .controls{padding:14px;display:flex;flex-direction:column;gap:10px;border-top:1px solid rgba(255,215,0,0.1);background:var(--bg)}
+      .bar{display:flex;gap:10px;align-items:center}
+      #msg-input{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:8px;color:#fff;padding:12px;font-family:'JetBrains Mono';outline:none;resize:none;max-height:150px}
+      .btn-icon{background:rgba(255,215,0,0.1);border:1px solid var(--gold-dim);color:var(--gold);padding:10px;border-radius:8px;cursor:pointer;font-size:12px}
+      #send-btn{background:var(--gold);border:none;border-radius:8px;padding:0 20px;font-family:'Bebas Neue';font-size:18px;cursor:pointer;min-height:45px}
+      #dot{width:8px;height:8px;border-radius:50%;background:#5ce0a8}
+      #dot.busy{animation:pulse 1s infinite;background:var(--gold)}
+      @keyframes pulse{0%{opacity:1}50%{opacity:0.3}}
+  </style>
+</head>
+<body>
+<div id="boot">
+  <div id="boot-logo">JEFE</div>
+  <div class="boot-field"><label>Groq API Key (Primary)</label><input type="password" id="key-groq" value="" placeholder="gsk_..."></div>
+  <div class="boot-field"><label>Cerebras API Key (Backup 1)</label><input type="password" id="key-cerebras" value="" placeholder="csk-..."></div>
+  <div class="boot-field"><label>OpenRouter API Key (Backup 2)</label><input type="password" id="key-openrouter" value="" placeholder="sk-or-..."></div>
+  <div class="boot-field">
+      <label>Max Response Length</label>
+      <input type="range" id="ctx-slider" min="512" max="4096" step="512" value="2048">
+      <div class="ctx-display">
+          <span class="ctx-val" id="ctx-label">2,048</span>
+          <span class="ctx-hint" id="ctx-hint">~1,536 WORDS</span>
+      </div>
+  </div>
+  <button id="boot-btn">INITIALIZE EVOLUTION</button>
+</div>
+<div id="chat">
+  <div id="header">
+      <div>
+          <div style="font-family:'Bebas Neue';font-size:24px;letter-spacing:6px">JEFE // EVOLVED</div>
+          <div id="provider-badge">GROQ</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+          <div id="dot"></div>
+          <button onclick="toggleVault()" class="btn-icon">SKILL_VAULT</button>
+      </div>
+  </div>
+  <div id="skill-vault">
+      <h4>NEURAL_VAULT</h4>
+      <div id="skill-list"></div>
+      <button onclick="clearSkills()" style="background:none;border:none;color:red;font-size:8px;margin-top:10px;cursor:pointer">WIPE_SKILLS</button>
+  </div>
+  <div id="messages"></div>
+  <div id="input-area" class="controls">
+      <div id="preview" style="display:none"><img id="img-p" style="height:40px;border:1px solid var(--gold);border-radius:4px"></div>
+      <div class="bar">
+          <button onclick="el('img-in').click()" class="btn-icon">&#x1F4F7;</button>
+          <input type="file" id="img-in" style="display:none" accept="image/*">
+          <textarea id="msg-input" placeholder="Teach or Command..." rows="1"></textarea>
+          <button id="send-btn">SEND</button>
+      </div>
+  </div>
+</div>
+<script>
+  var el = function(id) { return document.getElementById(id); };
+  var activeImg = null;
+  var NUM_CTX = 2048;
+  var PROVIDERS = [];
+  var ctxSlider = el('ctx-slider');
+  var ctxLabel = el('ctx-label');
+  var ctxHintEl = el('ctx-hint');
+  function updateCtxDisplay() {
+      var val = parseInt(ctxSlider.value);
+      NUM_CTX = val;
+      ctxLabel.innerText = val.toLocaleString();
+      var words = Math.round(val * 0.75);
+      ctxHintEl.innerText = "~" + words.toLocaleString() + " WORDS";
+  }
+  ctxSlider.addEventListener('input', updateCtxDisplay);
+  var JEFE_BRAIN = {
+      persona: localStorage.getItem('j_persona') || "You are JEFE, an elite analytical engine. Never apologize. Be technical. Use Markdown for all tables/code. Keep responses concise unless asked to go deep.",
+      skills: JSON.parse(localStorage.getItem('j_skills') || '[]')
+  };
+  window.onload = function() {
+      if(localStorage.getItem('j_logs')) el('messages').innerHTML = localStorage.getItem('j_logs');
+      if(localStorage.getItem('j_key_groq')) el('key-groq').value = localStorage.getItem('j_key_groq');
+      if(localStorage.getItem('j_key_cerebras')) el('key-cerebras').value = localStorage.getItem('j_key_cerebras');
+      if(localStorage.getItem('j_key_openrouter')) el('key-openrouter').value = localStorage.getItem('j_key_openrouter');
+      updateSkillVault();
+      updateCtxDisplay();
+      el('messages').scrollTo(0, 1e7);
+  };
+  function toggleVault() {
+      var v = el('skill-vault');
+      v.style.display = v.style.display === 'block' ? 'none' : 'block';
+  }
+  function updateSkillVault() {
+      if (JEFE_BRAIN.skills.length) {
+          var html = '';
+          for (var i = 0; i < JEFE_BRAIN.skills.length; i++) {
+              html += '<div class="skill-item">' + JEFE_BRAIN.skills[i] + '</div>';
+          }
+          el('skill-list').innerHTML = html;
+      } else {
+          el('skill-list').innerHTML = '<div style="color:var(--gold-dim)">Empty Context</div>';
+      }
+      localStorage.setItem('j_skills', JSON.stringify(JEFE_BRAIN.skills));
+      localStorage.setItem('j_persona', JEFE_BRAIN.persona);
+  }
+  function clearSkills() {
+      JEFE_BRAIN.skills = [];
+      updateSkillVault();
+      appendSysMsg("NEURAL_VAULT_PURGED");
+  }
+  el('img-in').onchange = function(e) {
+      var reader = new FileReader();
+      reader.onload = function(re) {
+          activeImg = re.target.result.split(',')[1];
+          el('img-p').src = re.target.result;
+          el('preview').style.display = 'block';
+      };
+      reader.readAsDataURL(e.target.files[0]);
+  };
+  el('boot-btn').onclick = function() {
+      var gk = el('key-groq').value.trim();
+      var ck = el('key-cerebras').value.trim();
+      var ok = el('key-openrouter').value.trim();
+      if (!gk && !ck && !ok) { alert("Enter at least one API key"); return; }
+      PROVIDERS = [];
+      if (gk) { PROVIDERS.push({name:"GROQ",url:"https://api.groq.com/openai/v1/chat/completions",key:gk,model:"llama-3.3-70b-versatile"}); localStorage.setItem('j_key_groq',gk); }
+      if (ck) { PROVIDERS.push({name:"CEREBRAS",url:"https://api.cerebras.ai/v1/chat/completions",key:ck,model:"llama3.1-8b"}); localStorage.setItem('j_key_cerebras',ck); }
+      if (ok) { PROVIDERS.push({name:"OPENROUTER",url:"https://openrouter.ai/api/v1/chat/completions",key:ok,model:"meta-llama/llama-3.3-70b-instruct:free"}); localStorage.setItem('j_key_openrouter',ok); }
+      el('boot').classList.add('hidden');
+      el('chat').classList.add('active');
+      el('provider-badge').innerText = PROVIDERS[0].name;
+  };
+  async function tryProvider(providerIndex, fullSystem, text) {
+      var p = PROVIDERS[providerIndex];
+      el('provider-badge').innerText = p.name;
+      var headers = { "Content-Type": "application/json", "Authorization": "Bearer " + p.key };
+      if (p.name === "OPENROUTER") {
+          headers["HTTP-Referer"] = "https://yourmomsucks357-blip.github.io/Jefe/";
+          headers["X-Title"] = "JEFE";
+      }
+      var res = await fetch(p.url, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+              model: p.model,
+              messages: [
+                  { role: "system", content: fullSystem },
+                  { role: "user", content: text }
+              ],
+              stream: false,
+              max_tokens: NUM_CTX
+          })
+      });
+      if (!res.ok) {
+          var errText = await res.text();
+          throw new Error(p.name + " " + res.status + ": " + errText);
+      }
+      var data = await res.json();
+      if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+          return data.choices[0].message.content;
+      }
+      if (data.error) {
+          throw new Error(p.name + ": " + data.error.message);
+      }
+      throw new Error(p.name + ": No response content");
+  }
+  async function askJefe() {
+      var text = el('msg-input').value.trim();
+      if(!text && !activeImg) return;
+      if (text.toLowerCase().indexOf("change your personality to") !== -1) {
+          JEFE_BRAIN.persona = "You are now: " + text.substring(text.toLowerCase().indexOf("change your personality to") + 26).trim();
+          updateSkillVault();
+          appendSysMsg("IDENTITY_REWRITTEN");
+      }
+      if (text.toLowerCase().indexOf("learn this skill:") !== -1) {
+          var skill = text.substring(text.toLowerCase().indexOf("learn this skill:") + 17).trim();
+          JEFE_BRAIN.skills.push(skill);
+          updateSkillVault();
+          appendSysMsg("SKILL_LOCKED");
+      }
+      var uMsg = document.createElement('div');
+      uMsg.className = 'msg user'; uMsg.innerText = text;
+      if(activeImg) {
+          var img = document.createElement('img');
+          img.src = el('img-p').src; img.className = 'thumb';
+          uMsg.appendChild(img);
+      }
+      el('messages').appendChild(uMsg);
+      el('msg-input').value = '';
+      el('preview').style.display = 'none';
+      el('dot').classList.add('busy');
+      var jMsg = document.createElement('div');
+      jMsg.className = 'msg jefe';
+      jMsg.innerText = "PROCESSING...";
+      el('messages').appendChild(jMsg);
+      el('messages').scrollTo(0, 1e7);
+      var fullSystem = JEFE_BRAIN.persona + "\n\nRETAINED_KNOWLEDGE:\n" + JEFE_BRAIN.skills.join('\n');
+      var responseText = null;
+      var lastError = "";
+      for (var p = 0; p < PROVIDERS.length; p++) {
+          try {
+              responseText = await tryProvider(p, fullSystem, text);
+              break;
+          } catch(e) {
+              lastError = e.message;
+              appendSysMsg("FAILOVER: " + PROVIDERS[p].name + " down, switching...");
+              continue;
+          }
+      }
+      if (!responseText) {
+          jMsg.innerText = "ALL PROVIDERS DOWN: " + lastError;
+      } else {
+          jMsg.innerHTML = marked.parse(responseText);
+          jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
+      }
+      activeImg = null;
+      localStorage.setItem('j_logs', el('messages').innerHTML);
+      el('messages').scrollTo(0, 1e7);
+      el('dot').classList.remove('busy');
+  }
+  function appendSysMsg(txt) {
+      var d = document.createElement('div');
+      d.style.cssText = "color:var(--gold-dim); font-size:9px; text-align:center; margin:5px; font-weight:bold";
+      d.innerText = '[' + txt + ']'; el('messages').appendChild(d);
+  }
+  el('send-btn').onclick = askJefe;
+  el('msg-input').onkeydown = function(e) { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askJefe(); }};
+</script>
+</body>
+</html>
