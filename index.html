@@ -18,7 +18,7 @@
       @keyframes breathe{0%,100%{opacity:1}50%{opacity:0.7}}
       .boot-field{width:100%;max-width:400px;margin-bottom:12px}
       .boot-field label{display:block;font-size:9px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:6px;text-transform:uppercase}
-      .boot-field input,.boot-field select{width:100%;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:6px;color:var(--gold);padding:12px;font-family:'JetBrains Mono';outline:none}
+      .boot-field input,.boot-field select{width:100%;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:6px;color:var(--gold);padding:12px;font-family:'JetBrains Mono';outline:none;font-size:11px}
       .boot-field input[type="range"]{padding:0;background:transparent;border:none;-webkit-appearance:none;width:100%;height:6px;margin-top:8px}
       .boot-field input[type="range"]::-webkit-slider-runnable-track{height:6px;background:rgba(255,215,0,0.15);border-radius:3px}
       .boot-field input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--gold);margin-top:-8px;box-shadow:0 0 12px rgba(255,215,0,0.5)}
@@ -29,6 +29,7 @@
       #chat{display:none;flex-direction:column;height:100dvh}
       #chat.active{display:flex}
       #header{padding:12px 16px;border-bottom:1px solid rgba(255,215,0,0.1);display:flex;justify-content:space-between;align-items:center}
+      #provider-badge{font-size:8px;color:var(--gold-dim);letter-spacing:1px}
       #skill-vault{position:absolute;top:60px;right:10px;width:220px;max-height:300px;background:rgba(6,6,8,0.95);border:1px solid var(--gold-dim);border-radius:8px;padding:12px;font-size:10px;overflow-y:auto;z-index:100;display:none;box-shadow:0 0 20px rgba(0,0,0,0.5)}
       #skill-vault h4{color:var(--gold);margin-bottom:10px;border-bottom:1px solid var(--gold-dim);padding-bottom:4px;letter-spacing:2px}
       .skill-item{color:var(--text);margin-bottom:8px;padding-left:12px;position:relative;line-height:1.4}
@@ -52,29 +53,25 @@
 <body>
 <div id="boot">
   <div id="boot-logo">JEFE</div>
-  <div class="boot-field"><label>Groq API Key</label><input type="password" id="api-key" value="" placeholder="Paste your Groq API key here"></div>
-  <div class="boot-field">
-      <label>Engine</label>
-      <select id="model-pick">
-          <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Versatile)</option>
-          <option value="llama-3.1-8b-instant">Llama 3.1 8B (Fast)</option>
-          <option value="mixtral-8x7b-32768">Mixtral 8x7B (32K Context)</option>
-          <option value="gemma2-9b-it">Gemma 2 9B</option>
-      </select>
-  </div>
+  <div class="boot-field"><label>Groq API Key (Primary)</label><input type="password" id="key-groq" value="" placeholder="gsk_..."></div>
+  <div class="boot-field"><label>Cerebras API Key (Backup 1)</label><input type="password" id="key-cerebras" value="" placeholder="csk-..."></div>
+  <div class="boot-field"><label>OpenRouter API Key (Backup 2)</label><input type="password" id="key-openrouter" value="" placeholder="sk-or-..."></div>
   <div class="boot-field">
       <label>Context Window (Memory Depth)</label>
-      <input type="range" id="ctx-slider" min="2048" max="32768" step="2048" value="8192">
+      <input type="range" id="ctx-slider" min="1024" max="8192" step="1024" value="4096">
       <div class="ctx-display">
-          <span class="ctx-val" id="ctx-label">8,192</span>
-          <span class="ctx-hint" id="ctx-hint">~6,144 WORDS</span>
+          <span class="ctx-val" id="ctx-label">4,096</span>
+          <span class="ctx-hint" id="ctx-hint">~3,072 WORDS</span>
       </div>
   </div>
   <button id="boot-btn">INITIALIZE EVOLUTION</button>
 </div>
 <div id="chat">
   <div id="header">
-      <div style="font-family:'Bebas Neue';font-size:24px;letter-spacing:6px">JEFE // EVOLVED</div>
+      <div>
+          <div style="font-family:'Bebas Neue';font-size:24px;letter-spacing:6px">JEFE // EVOLVED</div>
+          <div id="provider-badge">GROQ</div>
+      </div>
       <div style="display:flex;gap:10px;align-items:center">
           <div id="dot"></div>
           <button onclick="toggleVault()" class="btn-icon">SKILL_VAULT</button>
@@ -99,8 +96,9 @@
 <script>
   var el = function(id) { return document.getElementById(id); };
   var activeImg = null;
-  var NUM_CTX = 8192;
-  var GROQ_KEY = "";
+  var NUM_CTX = 4096;
+  var renderTimer = null;
+  var PROVIDERS = [];
   var ctxSlider = el('ctx-slider');
   var ctxLabel = el('ctx-label');
   var ctxHintEl = el('ctx-hint');
@@ -113,12 +111,14 @@
   }
   ctxSlider.addEventListener('input', updateCtxDisplay);
   var JEFE_BRAIN = {
-      persona: localStorage.getItem('j_persona') || "You are JEFE, an elite analytical engine. Never apologize. Be technical. Use Markdown for all tables/code.",
+      persona: localStorage.getItem('j_persona') || "You are JEFE, an elite analytical engine. Never apologize. Be technical. Use Markdown for all tables/code. Keep responses concise unless asked to go deep.",
       skills: JSON.parse(localStorage.getItem('j_skills') || '[]')
   };
   window.onload = function() {
       if(localStorage.getItem('j_logs')) el('messages').innerHTML = localStorage.getItem('j_logs');
-      if(localStorage.getItem('j_groq_key')) el('api-key').value = localStorage.getItem('j_groq_key');
+      if(localStorage.getItem('j_key_groq')) el('key-groq').value = localStorage.getItem('j_key_groq');
+      if(localStorage.getItem('j_key_cerebras')) el('key-cerebras').value = localStorage.getItem('j_key_cerebras');
+      if(localStorage.getItem('j_key_openrouter')) el('key-openrouter').value = localStorage.getItem('j_key_openrouter');
       updateSkillVault();
       updateCtxDisplay();
       el('messages').scrollTo(0, 1e7);
@@ -155,12 +155,50 @@
       reader.readAsDataURL(e.target.files[0]);
   };
   el('boot-btn').onclick = function() {
-      GROQ_KEY = el('api-key').value.trim();
-      if (!GROQ_KEY) { alert("Enter your Groq API Key"); return; }
-      localStorage.setItem('j_groq_key', GROQ_KEY);
+      var gk = el('key-groq').value.trim();
+      var ck = el('key-cerebras').value.trim();
+      var ok = el('key-openrouter').value.trim();
+      if (!gk && !ck && !ok) { alert("Enter at least one API key"); return; }
+      PROVIDERS = [];
+      if (gk) { PROVIDERS.push({name:"GROQ",url:"https://api.groq.com/openai/v1/chat/completions",key:gk,model:"llama-3.3-70b-versatile"}); localStorage.setItem('j_key_groq',gk); }
+      if (ck) { PROVIDERS.push({name:"CEREBRAS",url:"https://api.cerebras.ai/v1/chat/completions",key:ck,model:"llama-3.3-70b"}); localStorage.setItem('j_key_cerebras',ck); }
+      if (ok) { PROVIDERS.push({name:"OPENROUTER",url:"https://openrouter.ai/api/v1/chat/completions",key:ok,model:"meta-llama/llama-3.3-70b-instruct:free"}); localStorage.setItem('j_key_openrouter',ok); }
       el('boot').classList.add('hidden');
       el('chat').classList.add('active');
+      el('provider-badge').innerText = PROVIDERS[0].name;
   };
+  function throttledRender(jMsg, full) {
+      if (renderTimer) return;
+      renderTimer = setTimeout(function() {
+          renderTimer = null;
+          jMsg.innerHTML = marked.parse(full);
+          jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
+          el('messages').scrollTo(0, 1e7);
+      }, 100);
+  }
+  async function tryProvider(providerIndex, fullSystem, text) {
+      var p = PROVIDERS[providerIndex];
+      el('provider-badge').innerText = p.name;
+      var headers = { "Content-Type": "application/json", "Authorization": "Bearer " + p.key };
+      if (p.name === "OPENROUTER") { headers["HTTP-Referer"] = "https://yourmomsucks357-blip.github.io/Jefe/"; }
+      var res = await fetch(p.url, {
+          method: 'POST', headers: headers,
+          body: JSON.stringify({
+              model: p.model,
+              messages: [
+                  { role: "system", content: fullSystem },
+                  { role: "user", content: text }
+              ],
+              stream: true,
+              max_tokens: NUM_CTX
+          })
+      });
+      if (!res.ok) {
+          var errText = await res.text();
+          throw new Error(p.name + " ERROR " + res.status + ": " + errText);
+      }
+      return res;
+  }
   async function askJefe() {
       var text = el('msg-input').value.trim();
       if(!text && !activeImg) return;
@@ -189,31 +227,33 @@
       var jMsg = document.createElement('div');
       jMsg.className = 'msg jefe'; el('messages').appendChild(jMsg);
       var fullSystem = JEFE_BRAIN.persona + "\n\nRETAINED_KNOWLEDGE:\n" + JEFE_BRAIN.skills.join('\n');
-      var headers = { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_KEY };
-      try {
-          var res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-              method: 'POST', headers: headers,
-              body: JSON.stringify({
-                  model: el('model-pick').value,
-                  messages: [
-                      { role: "system", content: fullSystem },
-                      { role: "user", content: text }
-                  ],
-                  stream: true,
-                  max_tokens: NUM_CTX
-              })
-          });
-          if (!res.ok) {
-              var errData = await res.json();
-              jMsg.innerText = "GROQ ERROR " + res.status + ": " + (errData.error ? errData.error.message : "Unknown error");
-              return;
+      var res = null;
+      var lastError = "";
+      for (var p = 0; p < PROVIDERS.length; p++) {
+          try {
+              res = await tryProvider(p, fullSystem, text);
+              break;
+          } catch(e) {
+              lastError = e.message;
+              appendSysMsg("FAILOVER: " + PROVIDERS[p].name + " failed, trying next...");
+              continue;
           }
+      }
+      if (!res) {
+          jMsg.innerText = "ALL PROVIDERS FAILED: " + lastError;
+          el('dot').classList.remove('busy');
+          return;
+      }
+      try {
           var reader = res.body.getReader();
           var full = "";
+          var buffer = "";
           while (true) {
               var chunk = await reader.read();
               if(chunk.done) break;
-              var lines = new TextDecoder().decode(chunk.value).split('\n');
+              buffer += new TextDecoder().decode(chunk.value);
+              var lines = buffer.split('\n');
+              buffer = lines.pop();
               for (var i = 0; i < lines.length; i++) {
                   var line = lines[i].trim();
                   if (!line) continue;
@@ -225,16 +265,19 @@
                       var json = JSON.parse(line);
                       if (json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
                           full += json.choices[0].delta.content;
-                          jMsg.innerHTML = marked.parse(full);
-                          jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
+                          throttledRender(jMsg, full);
                       }
                   } catch(e){}
               }
+          }
+          if (full) {
+              jMsg.innerHTML = marked.parse(full);
+              jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
               el('messages').scrollTo(0, 1e7);
           }
           activeImg = null;
           localStorage.setItem('j_logs', el('messages').innerHTML);
-      } catch (e) { jMsg.innerText = "LINK_FAILURE: " + e.message; }
+      } catch (e) { jMsg.innerText = "STREAM ERROR: " + e.message; }
       finally { el('dot').classList.remove('busy'); }
   }
   function appendSysMsg(txt) {
