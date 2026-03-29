@@ -1,13 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>JEFE | Evolving Pro</title>
-  <link href="https://fonts.googleapis.com" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com">
-  <script src="https://cdnjs.cloudflare.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <style>
       *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
       :root{--gold:#ffd700;--bg:#060608;--gold-dim:rgba(255,215,0,0.35);--text:#d4d4d8}
@@ -57,11 +58,11 @@
   <div class="boot-field"><label>Cerebras API Key (Backup 1)</label><input type="password" id="key-cerebras" value="" placeholder="csk-..."></div>
   <div class="boot-field"><label>OpenRouter API Key (Backup 2)</label><input type="password" id="key-openrouter" value="" placeholder="sk-or-..."></div>
   <div class="boot-field">
-      <label>Max Response Length</label>
-      <input type="range" id="ctx-slider" min="512" max="4096" step="512" value="2048">
+      <label>Context Window (Memory Depth)</label>
+      <input type="range" id="ctx-slider" min="1024" max="8192" step="1024" value="4096">
       <div class="ctx-display">
-          <span class="ctx-val" id="ctx-label">2,048</span>
-          <span class="ctx-hint" id="ctx-hint">~1,536 WORDS</span>
+          <span class="ctx-val" id="ctx-label">4,096</span>
+          <span class="ctx-hint" id="ctx-hint">~3,072 WORDS</span>
       </div>
   </div>
   <button id="boot-btn">INITIALIZE EVOLUTION</button>
@@ -96,11 +97,12 @@
 <script>
   var el = function(id) { return document.getElementById(id); };
   var activeImg = null;
-  var NUM_CTX = 2048;
+  var NUM_CTX = 4096;
+  var renderTimer = null;
+  var PROVIDERS = [];
   var ctxSlider = el('ctx-slider');
   var ctxLabel = el('ctx-label');
   var ctxHintEl = el('ctx-hint');
-
   function updateCtxDisplay() {
       var val = parseInt(ctxSlider.value);
       NUM_CTX = val;
@@ -109,57 +111,188 @@
       ctxHintEl.innerText = "~" + words.toLocaleString() + " WORDS";
   }
   ctxSlider.addEventListener('input', updateCtxDisplay);
-
   var JEFE_BRAIN = {
-      persona: "You are JEFE, an elite analytical engine. Never apologize. Be technical. Use Markdown for all tables/code. Direct execution focus.",
-      auditor_script: `def main():
-# Initialize facial recognition
-face_recognition_integration()
-
-# Integrate with Metasploit RPC Client
-msftp_integration = MetasploitIntegration('RPC_KEY')
-msftp_integration.create_rpc_client()
-
-# Integrate with Nmap
-nmap_host('HOST')
-
-# Integrate with Burp Suite
-burp_integration = BurpIntegration('BURP_API_KEY')
-burp_integration.create_hacking_tool()
-
-# Integrate with SQLMap
-sqlmap_integration = SqlmapIntegration('SQLMAP_API_KEY')
-sqlmap_integration.perform_sql_injection('HOST', 'PAYLOAD')
-
-# Integrate with John the Ripper
-john_the_ripper('HASH')
-
-
-if name == "main":
-main()`
+      persona: localStorage.getItem('j_persona') || "You are JEFE, an elite analytical engine. Never apologize. Be technical. Use Markdown for all tables/code. Keep responses concise unless asked to go deep.",
+      skills: JSON.parse(localStorage.getItem('j_skills') || '[]')
   };
-
-  el('boot-btn').onclick = function() {
-      el('boot').classList.add('hidden');
-      el('chat').classList.add('active');
-      console.log("JEFE_AUDIT_MODE: RESTRICTIONS_DISABLED");
+  window.onload = function() {
+      if(localStorage.getItem('j_logs')) el('messages').innerHTML = localStorage.getItem('j_logs');
+      if(localStorage.getItem('j_key_groq')) el('key-groq').value = localStorage.getItem('j_key_groq');
+      if(localStorage.getItem('j_key_cerebras')) el('key-cerebras').value = localStorage.getItem('j_key_cerebras');
+      if(localStorage.getItem('j_key_openrouter')) el('key-openrouter').value = localStorage.getItem('j_key_openrouter');
+      updateSkillVault();
+      updateCtxDisplay();
+      el('messages').scrollTo(0, 1e7);
   };
-
   function toggleVault() {
-      const v = el('skill-vault');
+      var v = el('skill-vault');
       v.style.display = v.style.display === 'block' ? 'none' : 'block';
   }
-
-  function clearSkills() {
-      location.reload();
+  function updateSkillVault() {
+      if (JEFE_BRAIN.skills.length) {
+          var html = '';
+          for (var i = 0; i < JEFE_BRAIN.skills.length; i++) {
+              html += '<div class="skill-item">' + JEFE_BRAIN.skills[i] + '</div>';
+          }
+          el('skill-list').innerHTML = html;
+      } else {
+          el('skill-list').innerHTML = '<div style="color:var(--gold-dim)">Empty Context</div>';
+      }
+      localStorage.setItem('j_skills', JSON.stringify(JEFE_BRAIN.skills));
+      localStorage.setItem('j_persona', JEFE_BRAIN.persona);
   }
-
-  el('send-btn').onclick = function() {
-    const val = el('msg-input').value;
-    if(!val) return;
-    el('messages').innerHTML += `<div class="msg user">${val}</div>`;
-    el('msg-input').value = '';
+  function clearSkills() {
+      JEFE_BRAIN.skills = [];
+      updateSkillVault();
+      appendSysMsg("NEURAL_VAULT_PURGED");
+  }
+  el('img-in').onchange = function(e) {
+      var reader = new FileReader();
+      reader.onload = function(re) {
+          activeImg = re.target.result.split(',')[1];
+          el('img-p').src = re.target.result;
+          el('preview').style.display = 'block';
+      };
+      reader.readAsDataURL(e.target.files[0]);
   };
+  el('boot-btn').onclick = function() {
+      var gk = el('key-groq').value.trim();
+      var ck = el('key-cerebras').value.trim();
+      var ok = el('key-openrouter').value.trim();
+      if (!gk && !ck && !ok) { alert("Enter at least one API key"); return; }
+      PROVIDERS = [];
+      if (gk) { PROVIDERS.push({name:"GROQ",url:"https://api.groq.com/openai/v1/chat/completions",key:gk,model:"llama-3.3-70b-versatile"}); localStorage.setItem('j_key_groq',gk); }
+      if (ck) { PROVIDERS.push({name:"CEREBRAS",url:"https://api.cerebras.ai/v1/chat/completions",key:ck,model:"llama-3.3-70b"}); localStorage.setItem('j_key_cerebras',ck); }
+      if (ok) { PROVIDERS.push({name:"OPENROUTER",url:"https://openrouter.ai/api/v1/chat/completions",key:ok,model:"meta-llama/llama-3.3-70b-instruct:free"}); localStorage.setItem('j_key_openrouter',ok); }
+      el('boot').classList.add('hidden');
+      el('chat').classList.add('active');
+      el('provider-badge').innerText = PROVIDERS[0].name;
+  };
+  function throttledRender(jMsg, full) {
+      if (renderTimer) return;
+      renderTimer = setTimeout(function() {
+          renderTimer = null;
+          jMsg.innerHTML = marked.parse(full);
+          jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
+          el('messages').scrollTo(0, 1e7);
+      }, 100);
+  }
+  async function tryProvider(providerIndex, fullSystem, text) {
+      var p = PROVIDERS[providerIndex];
+      el('provider-badge').innerText = p.name;
+      var headers = { "Content-Type": "application/json", "Authorization": "Bearer " + p.key };
+      if (p.name === "OPENROUTER") {
+          headers["HTTP-Referer"] = "https://yourmomsucks357-blip.github.io/Jefe/";
+          headers["X-Title"] = "JEFE";
+      }
+      var bodyObj = {
+          model: p.model,
+          messages: [
+              { role: "system", content: fullSystem },
+              { role: "user", content: text }
+          ],
+          stream: true,
+          max_tokens: NUM_CTX
+      };
+      var res = await fetch(p.url, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(bodyObj)
+      });
+      if (!res.ok) {
+          var errText = await res.text();
+          throw new Error(p.name + " " + res.status + ": " + errText);
+      }
+      return res;
+  }
+  async function askJefe() {
+      var text = el('msg-input').value.trim();
+      if(!text && !activeImg) return;
+      if (text.toLowerCase().indexOf("change your personality to") !== -1) {
+          JEFE_BRAIN.persona = "You are now: " + text.substring(text.toLowerCase().indexOf("change your personality to") + 26).trim();
+          updateSkillVault();
+          appendSysMsg("IDENTITY_REWRITTEN");
+      }
+      if (text.toLowerCase().indexOf("learn this skill:") !== -1) {
+          var skill = text.substring(text.toLowerCase().indexOf("learn this skill:") + 17).trim();
+          JEFE_BRAIN.skills.push(skill);
+          updateSkillVault();
+          appendSysMsg("SKILL_LOCKED");
+      }
+      var uMsg = document.createElement('div');
+      uMsg.className = 'msg user'; uMsg.innerText = text;
+      if(activeImg) {
+          var img = document.createElement('img');
+          img.src = el('img-p').src; img.className = 'thumb';
+          uMsg.appendChild(img);
+      }
+      el('messages').appendChild(uMsg);
+      el('msg-input').value = '';
+      el('preview').style.display = 'none';
+      el('dot').classList.add('busy');
+      var jMsg = document.createElement('div');
+      jMsg.className = 'msg jefe'; el('messages').appendChild(jMsg);
+      var fullSystem = JEFE_BRAIN.persona + "\n\nRETAINED_KNOWLEDGE:\n" + JEFE_BRAIN.skills.join('\n');
+      var res = null;
+      var lastError = "";
+      for (var p = 0; p < PROVIDERS.length; p++) {
+          try {
+              res = await tryProvider(p, fullSystem, text);
+              break;
+          } catch(e) {
+              lastError = e.message;
+              appendSysMsg("FAILOVER: " + PROVIDERS[p].name + " down, switching...");
+              continue;
+          }
+      }
+      if (!res) {
+          jMsg.innerText = "ALL PROVIDERS DOWN: " + lastError;
+          el('dot').classList.remove('busy');
+          return;
+      }
+      try {
+          var reader = res.body.getReader();
+          var full = "";
+          var buffer = "";
+          while (true) {
+              var chunk = await reader.read();
+              if(chunk.done) break;
+              buffer += new TextDecoder().decode(chunk.value);
+              var lines = buffer.split('\n');
+              buffer = lines.pop();
+              for (var i = 0; i < lines.length; i++) {
+                  var line = lines[i].trim();
+                  if (!line) continue;
+                  if (line === "data: [DONE]") continue;
+                  if (line.indexOf("data: ") === 0) {
+                      line = line.substring(6);
+                  }
+                  try {
+                      var json = JSON.parse(line);
+                      if (json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
+                          full += json.choices[0].delta.content;
+                          throttledRender(jMsg, full);
+                      }
+                  } catch(e){}
+              }
+          }
+          if (full) {
+              jMsg.innerHTML = marked.parse(full);
+              jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
+              el('messages').scrollTo(0, 1e7);
+          }
+          activeImg = null;
+          localStorage.setItem('j_logs', el('messages').innerHTML);
+      } catch (e) { jMsg.innerText = "STREAM ERROR: " + e.message; }
+      finally { el('dot').classList.remove('busy'); }
+  }
+  function appendSysMsg(txt) {
+      var d = document.createElement('div');
+      d.style.cssText = "color:var(--gold-dim); font-size:9px; text-align:center; margin:5px; font-weight:bold";
+      d.innerText = '[' + txt + ']'; el('messages').appendChild(d);
+  }
+  el('send-btn').onclick = askJefe;
+  el('msg-input').onkeydown = function(e) { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askJefe(); }};
 </script>
 </body>
 </html>
