@@ -99,6 +99,10 @@
   var NUM_CTX = 4096;
   var renderTimer = null;
   var PROVIDERS = [];
+  var apiRotationIndex = 0;
+  var lastRequestTime = 0;
+  var THROTTLE_MS = 2000;
+  var promptCache = JSON.parse(localStorage.getItem('j_cache') || '{}');
   var ctxSlider = el('ctx-slider');
   var ctxLabel = el('ctx-label');
   var ctxHintEl = el('ctx-hint');
@@ -145,6 +149,11 @@
       updateSkillVault();
       appendSysMsg("NEURAL_VAULT_PURGED");
   }
+  function clearCache() {
+      promptCache = {};
+      localStorage.setItem('j_cache', '{}');
+      appendSysMsg("CACHE_PURGED");
+  }
   el('img-in').onchange = function(e) {
       var reader = new FileReader();
       reader.onload = function(re) {
@@ -167,6 +176,11 @@
       el('chat').classList.add('active');
       el('provider-badge').innerText = PROVIDERS[0].name;
   };
+  function getNextProvider() {
+      var p = PROVIDERS[apiRotationIndex % PROVIDERS.length];
+      apiRotationIndex++;
+      return p;
+  }
   function throttledRender(jMsg, full) {
       if (renderTimer) return;
       renderTimer = setTimeout(function() {
@@ -176,8 +190,8 @@
           el('messages').scrollTo(0, 1e7);
       }, 150);
   }
-  async function tryProvider(providerIndex, fullSystem, text) {
-      var p = PROVIDERS[providerIndex];
+  async function tryProvider(provider, fullSystem, text) {
+      var p = provider;
       el('provider-badge').innerText = p.name;
       var headers = { "Content-Type": "application/json", "Authorization": "Bearer " + p.key };
       if (p.name === "OPENROUTER") {
@@ -210,6 +224,17 @@
   async function askJefe() {
       var text = el('msg-input').value.trim();
       if(!text && !activeImg) return;
+      var now = Date.now();
+      if (now - lastRequestTime < THROTTLE_MS) {
+          appendSysMsg("THROTTLED: Wait " + Math.ceil((THROTTLE_MS - (now - lastRequestTime)) / 1000) + "s");
+          return;
+      }
+      lastRequestTime = now;
+      if (text.toLowerCase().indexOf("clear cache") !== -1) {
+          clearCache();
+          el('msg-input').value = '';
+          return;
+      }
       if (text.toLowerCase().indexOf("change your personality to") !== -1) {
           JEFE_BRAIN.persona = "You are now: " + text.substring(text.toLowerCase().indexOf("change your personality to") + 26).trim();
           updateSkillVault();
@@ -231,6 +256,17 @@
       el('messages').appendChild(uMsg);
       el('msg-input').value = '';
       el('preview').style.display = 'none';
+      if (promptCache[text] && !activeImg) {
+          var cMsg = document.createElement('div');
+          cMsg.className = 'msg jefe';
+          cMsg.innerHTML = marked.parse(promptCache[text]);
+          cMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
+          el('messages').appendChild(cMsg);
+          appendSysMsg("CACHED_RESPONSE");
+          el('messages').scrollTo(0, 1e7);
+          localStorage.setItem('j_logs', el('messages').innerHTML);
+          return;
+      }
       el('dot').classList.add('busy');
       var jMsg = document.createElement('div');
       jMsg.className = 'msg jefe';
@@ -240,14 +276,19 @@
       var fullSystem = JEFE_BRAIN.persona + "\n\nRETAINED_KNOWLEDGE:\n" + JEFE_BRAIN.skills.join('\n');
       var res = null;
       var lastError = "";
-      for (var p = 0; p < PROVIDERS.length; p++) {
+      var startProvider = getNextProvider();
+      var tried = 0;
+      var currentIndex = PROVIDERS.indexOf(startProvider);
+      while (tried < PROVIDERS.length) {
+          var p = PROVIDERS[(currentIndex + tried) % PROVIDERS.length];
           try {
               res = await tryProvider(p, fullSystem, text);
               jMsg.innerText = "";
               break;
           } catch(e) {
               lastError = e.message;
-              appendSysMsg("FAILOVER: " + PROVIDERS[p].name + " down, switching...");
+              appendSysMsg("FAILOVER: " + p.name + " down, switching...");
+              tried++;
               continue;
           }
       }
@@ -286,6 +327,8 @@
               jMsg.innerHTML = marked.parse(full);
               jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
               el('messages').scrollTo(0, 1e7);
+              promptCache[text] = full;
+              try { localStorage.setItem('j_cache', JSON.stringify(promptCache)); } catch(e) {}
           }
           activeImg = null;
           localStorage.setItem('j_logs', el('messages').innerHTML);
