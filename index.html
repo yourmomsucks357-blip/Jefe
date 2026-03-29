@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -162,7 +161,7 @@
       if (!gk && !ck && !ok) { alert("Enter at least one API key"); return; }
       PROVIDERS = [];
       if (gk) { PROVIDERS.push({name:"GROQ",url:"https://api.groq.com/openai/v1/chat/completions",key:gk,model:"llama-3.3-70b-versatile"}); localStorage.setItem('j_key_groq',gk); }
-      if (ck) { PROVIDERS.push({name:"CEREBRAS",url:"https://api.cerebras.ai/v1/chat/completions",key:ck,model:"llama-3.3-70b"}); localStorage.setItem('j_key_cerebras',ck); }
+      if (ck) { PROVIDERS.push({name:"CEREBRAS",url:"https://api.cerebras.ai/v1/chat/completions",key:ck,model:"gpt-oss-120b"}); localStorage.setItem('j_key_cerebras',ck); }
       if (ok) { PROVIDERS.push({name:"OPENROUTER",url:"https://openrouter.ai/api/v1/chat/completions",key:ok,model:"meta-llama/llama-3.3-70b-instruct:free"}); localStorage.setItem('j_key_openrouter',ok); }
       el('boot').classList.add('hidden');
       el('chat').classList.add('active');
@@ -175,7 +174,7 @@
           jMsg.innerHTML = marked.parse(full);
           jMsg.querySelectorAll('pre code').forEach(hljs.highlightElement);
           el('messages').scrollTo(0, 1e7);
-      }, 100);
+      }, 150);
   }
   async function tryProvider(providerIndex, fullSystem, text) {
       var p = PROVIDERS[providerIndex];
@@ -185,20 +184,23 @@
           headers["HTTP-Referer"] = "https://yourmomsucks357-blip.github.io/Jefe/";
           headers["X-Title"] = "JEFE";
       }
-      var bodyObj = {
-          model: p.model,
-          messages: [
-              { role: "system", content: fullSystem },
-              { role: "user", content: text }
-          ],
-          stream: true,
-          max_tokens: NUM_CTX
-      };
+      var controller = new AbortController();
+      var timeout = setTimeout(function() { controller.abort(); }, 30000);
       var res = await fetch(p.url, {
           method: 'POST',
           headers: headers,
-          body: JSON.stringify(bodyObj)
+          body: JSON.stringify({
+              model: p.model,
+              messages: [
+                  { role: "system", content: fullSystem },
+                  { role: "user", content: text }
+              ],
+              stream: true,
+              max_tokens: NUM_CTX
+          }),
+          signal: controller.signal
       });
+      clearTimeout(timeout);
       if (!res.ok) {
           var errText = await res.text();
           throw new Error(p.name + " " + res.status + ": " + errText);
@@ -231,13 +233,17 @@
       el('preview').style.display = 'none';
       el('dot').classList.add('busy');
       var jMsg = document.createElement('div');
-      jMsg.className = 'msg jefe'; el('messages').appendChild(jMsg);
+      jMsg.className = 'msg jefe';
+      jMsg.innerText = "CONNECTING...";
+      el('messages').appendChild(jMsg);
+      el('messages').scrollTo(0, 1e7);
       var fullSystem = JEFE_BRAIN.persona + "\n\nRETAINED_KNOWLEDGE:\n" + JEFE_BRAIN.skills.join('\n');
       var res = null;
       var lastError = "";
       for (var p = 0; p < PROVIDERS.length; p++) {
           try {
               res = await tryProvider(p, fullSystem, text);
+              jMsg.innerText = "";
               break;
           } catch(e) {
               lastError = e.message;
