@@ -345,3 +345,39 @@
 </script>
 </body>
 </html>
+import requests
+
+# Set Clio API credentials
+client_id = "your_client_id"
+client_secret = "your_client_secret"
+username = "your_username"
+password = "your_password"
+
+# Authenticate with Clio API
+auth_url = "https://app.clio.com/api/v4/authenticate.json"
+auth_data = {
+    "grant_type": "password",
+    "username": username,
+    "password": password,
+    "client_id": client_id,
+    "client_secret": client_secret
+}
+auth_response = requests.post(auth_url, data=auth_data)
+
+# Get access token
+access_token = auth_response.json()["access_token"]
+
+# Retrieve list of cases
+cases_url = "https://app.clio.com/api/v4/cases.json"
+cases_headers = {
+    "Authorization": f"Bearer {access_token}",
+    "Content-Type": "application/json"
+}
+cases_response = requests.get(cases_url, headers=cases_headers)
+
+# Parse JSON response
+cases_data = cases_response.json()
+
+# Print list of cases
+for case in cases_data:
+    print(case["name"])
