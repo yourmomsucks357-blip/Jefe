@@ -414,3 +414,33 @@ print("Decrypted Data:", decrypted_data)
 url = "https://example.com"
 response = requests.post(url, data=encrypted_data, verify=True)
 print("Response Status Code:", response.status_code)
+import requests
+
+# Define the API endpoint and authentication credentials
+api_endpoint = "https://example.com/api/data"
+client_id = "fd59c696d"
+matter_number = "1582283313"
+
+# Define a function to retrieve the data
+def retrieve_data(api_endpoint, client_id, matter_number):
+    # Use a secure method to authenticate and authorize the request
+    auth = ("username", "password")
+    headers = {"Authorization": "Bearer token"}
+
+    # Define the payload for the API request
+    payload = {"client_id": client_id, "matter_number": matter_number}
+
+    # Send the request and retrieve the data
+    response = requests.post(api_endpoint, headers=headers, json=payload)
+
+    # Check if the response was successful
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
+
+# Call the function to retrieve the data
+data = retrieve_data(api_endpoint, client_id, matter_number)
+
+# Print the retrieved data
+print(data)
