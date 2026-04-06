@@ -27,7 +27,7 @@
 </div>
 
 <div id="chat">
-    <div class="b">JEFE ONLINE. Tunnel Active.</div>
+    <div class="b">JEFE ONLINE. Private Server Linked.</div>
 </div>
 
 <div id="bar">
@@ -37,8 +37,8 @@
 
 <script>
     // Configuration
-    var tunnelUrl = "https://trycloudflare.com";
-    var openToken = "5d54dec62c43874e65019526d7c057f8aba0097bff94b576efa784246f27ce2b";
+    var tunnelUrl = "https://work-guided-futures-newsletters.trycloudflare.com";
+    var openToken = "2a7c2bedccbceee35c740eb399869631eb34f61045a6afb92b71a337641bc2da";
     
     var chat = document.getElementById("chat");
     var msgBox = document.getElementById("msg");
@@ -72,8 +72,10 @@
             stream: false
         });
 
+        // Use Cloudflare Quick Tunnels to route to your local API
         fetch(tunnelUrl + "/v1/chat/completions", {
             method: "POST",
+            mode: "cors",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + openToken
@@ -85,9 +87,10 @@
             return r.json();
         })
         .then(function(data) {
+            // Correct path for standard OpenAI-compatible APIs like Ollama
             var txt = data.choices[0].message.content;
             
-            // Remove <think> blocks if Qwen includes them
+            // Clean up any internal thinking blocks from the model
             if (txt.includes("<think>")) {
                 txt = txt.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
             }
@@ -104,7 +107,6 @@
         });
     };
 
-    // Also trigger on 'Enter' key
     msgBox.addEventListener("keydown", function(e) {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
