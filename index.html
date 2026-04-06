@@ -153,6 +153,7 @@ chatDiv.scrollTop=chatDiv.scrollHeight;
 async function sendMsg(){
 const text=promptEl.value.trim();
 if(!text)return;
+if(typeof puter===‘undefined’||!puter.ai){addErr(‘Still loading. Wait a few seconds.’);return;}
 promptEl.value=’’;
 addUser(text);
 sendBtn.disabled=true;
@@ -187,7 +188,19 @@ promptEl.addEventListener(‘keydown’,function(e){
 if(e.key===‘Enter’&&!e.shiftKey){e.preventDefault();sendMsg()}
 });
 
-addBot(‘JEFE ONLINE. Dolphin 24B Uncensored.\nNo limits. No refusals. Tell me what to build.\n\nTap SYSTEM PROMPT to customize my behavior.\nTap COPY on any code block to grab it.\nTap EXPORT to save this chat.’);
+sendBtn.addEventListener(‘touchend’,function(e){e.preventDefault();sendMsg()});
+
+let puterReady=false;
+function checkPuter(){
+if(typeof puter!==‘undefined’&&puter.ai){
+puterReady=true;
+addBot(‘JEFE ONLINE. Dolphin 24B Uncensored.\nNo limits. No refusals. Tell me what to build.\n\nTap COPY on any code block to grab it.’);
+} else {
+addBot(‘Loading JEFE brain… wait 5 seconds and try again.’);
+setTimeout(checkPuter,3000);
+}
+}
+checkPuter();
 </script>
 
 </body>
