@@ -29,7 +29,6 @@
 <div id="chat">
     <div class="b">JEFE ONLINE. 
 System: Vast.ai Cloudflare Tunnel
-Model: qwen3.5:35b
 Status: Ready for commands.</div>
 </div>
 
@@ -39,8 +38,8 @@ Status: Ready for commands.</div>
 </div>
 
 <script>
-    // Configuration from your provided URL
-    var tunnelBase = "https://work-guided-futures-newsletters.trycloudflare.com";
+    // UPDATED CONFIG
+    var tunnelBase = "https://trycloudflare.com";
     var openToken = "2a7c2bedccbceee35c740eb399869631eb34f61045a6afb92b71a337641bc2da";
     
     var chat = document.getElementById("chat");
@@ -69,7 +68,7 @@ Status: Ready for commands.</div>
         
         hist.push({ role: "user", content: t });
         
-        // POST to the API endpoint of your Cloudflare tunnel
+        // POST to the correct API endpoint
         fetch(tunnelBase + "/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -87,9 +86,8 @@ Status: Ready for commands.</div>
             return r.json();
         })
         .then(function(data) {
-            var txt = data.choices[0].message.content;
+            var txt = data.choices[0].message.content; // Adjusted index access
             
-            // Remove <think> blocks if present
             if (txt.includes("<think>")) {
                 txt = txt.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
             }
@@ -106,7 +104,6 @@ Status: Ready for commands.</div>
         });
     };
 
-    // Keyboard support
     msgBox.addEventListener("keydown", function(e) {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
