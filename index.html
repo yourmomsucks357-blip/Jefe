@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -53,7 +53,7 @@ chat.scrollTop=chat.scrollHeight;
 function tryFetch(url){
 return fetch(url,{
 method:"POST",
-headers:{"Content-Type":"application/json","Authorization":"Bearer "+openToken},
+headers:{"Content-Type":"application/json"},
 body:JSON.stringify({model:"qwen3.5:35b",messages:[{role:"system",content:SYS}].concat(hist),stream:false})
 });
 }
@@ -67,7 +67,7 @@ statusEl.textContent="THINKING...";
 statusEl.style.color="#ff3333";
 hist.push({role:"user",content:t});
 
-var directUrl=tunnelUrl+"/v1/chat/completions";
+var directUrl=tunnelUrl+"/v1/chat/completions?token="+openToken;
 var proxyUrl="https://corsproxy.io/?"+encodeURIComponent(directUrl);
 
 tryFetch(directUrl).then(function(r){
