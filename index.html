@@ -1,64 +1,35 @@
 import argparse
-import subprocess
-from datetime import datetime
-import logging
-import json
-import requests
 
-# Set up logging
-logging.basicConfig(filename='security.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-class SecurityToolkit:
+class CybersecurityToolkit:
     def __init__(self):
-        self.metasploit = Metasploit()
-        # Add other components here (e.g., Mimikatz, Machine Learning Component)
-
-    def perform_hidden_detection(self):
-        # Proactive security checks
-        self.check_for_unusual_activity()
-        self.analyze_network_traffic()
-
-    def check_for_unusual_activity(self):
-        # Placeholder for checking unusual activity using machine learning or behavioral analytics
-        logging.info("Checking for unusual activity...")
-        # Example: If a script is monitoring logs, it might flag certain patterns as suspicious and log them
-
-    def analyze_network_traffic(self):
-        # Using a tool like Zeek (Bro) for network analysis
-        logging.info("Analyzing network traffic for anomalies...")
-        subprocess.run(["./bro", "-i", "eth0"], shell=True)
-
-class Metasploit:
-    def scan(self, target_ip):
-        return f"Scan results against {target_ip}"
-
-# Other classes and methods...
+        self.metasploit_integration = MetasploitIntegration()
+        # Add other components here as needed
+        
+    def run_metasploit_scan(self, target_ip):
+        return self.metasploit_integration.scan(target_ip)
 
 def main():
-    parser = argparse.ArgumentParser(description="A comprehensive toolkit for cybersecurity tasks and dark web interactions.")
+    parser = argparse.ArgumentParser(description="A comprehensive toolkit for cybersecurity tasks.")
     
-    # Existing argument parsing code...
+    parser.add_argument("command", choices=["metasploit-scan", "network-analysis", "learn", "face", "scan"], help="The operation to perform")
     
+    # Subparser for Metasploit scan
+    subparsers = parser.add_subparsers(title="commands", dest="command", required=True, help="Available commands")
+    
+    metasploit_parser = subparsers.add_parser("metasploit-scan", help="Perform a Metasploit vulnerability scan")
+    metasploit_parser.add_argument("--target-ip", required=True, help="The IP address of the target to scan")
+
+    # Add parsers for other commands here...
+
     args = parser.parse_args()
 
-    if args.command == 'search':
-        print(toolkit.search_dark_web(args.keyword))
-        
-    elif args.command == 'learn':  # Placeholder for machine learning functionality
-        pass
-        
-    elif args.command == 'face':
-        faces = toolkit.perform_facial_recognition(args.image_path)
-        print(f"Detected {len(faces)} faces.")
-        
-    elif args.command == 'scan':
-        extracted_text = toolkit.scan_document(args.image_path)
-        print("Extracted text from the document:")
-        print(extracted_text)
-
-    # New part: Hidden Detection
-    if args.command == 'detect':
-        toolkit.perform_hidden_detection()
+    toolkit = CybersecurityToolkit()
+    
+    if args.command == "metasploit-scan":
+        target_ip = args.target_ip
+        print("Running Metasploit vulnerability scan against", target_ip)
+        result = toolkit.run_metasploit_scan(target_ip)
+        print(result)
 
 if __name__ == "__main__":
     main()
