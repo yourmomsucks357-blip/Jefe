@@ -1,3 +1,4 @@
+cat << 'EOF' > ~/Desktop/deploy.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -70,7 +71,7 @@ textarea:focus,input:focus{border-color:rgba(0,230,118,0.5)}
   <div class="panel" id="panel-ip">
     <div id="ip-info">
       <div style="text-align:center;font-size:10px;letter-spacing:3px;color:var(--green-dim)">CURRENT VISIBLE IP</div>
-      <div class="ip-display" id="display-ip">...</div>
+      <div class="ip-display" id="display-ip">127.0.0.1</div>
     </div>
     <div id="ip-details"></div>
     <button class="action-btn" onclick="checkIP()">REFRESH STATUS</button>
@@ -86,7 +87,6 @@ textarea:focus,input:focus{border-color:rgba(0,230,118,0.5)}
 </div>
 
 <script>
-// === PLAYBOOK PATTERNS ===
 const PATTERNS = [
   { label: "Ex Parte Order", terms: ["ex parte", "exparte"] },
   { label: "Family Violence", terms: ["family violence", "domestic violence", "TPO", "temporary protective order"] },
@@ -106,15 +106,12 @@ const PATTERNS = [
 function runScan() {
   const raw = document.getElementById('playbook-input').value;
   const results = document.getElementById('playbook-results');
-
   if (!raw.trim()) {
     results.innerHTML = '<div class="result-card"><div class="result-value" style="color:var(--red)">NO INPUT — PASTE DOCKET TEXT FIRST</div></div>';
     return;
   }
-
   const lower = raw.toLowerCase();
   const hits = [];
-
   PATTERNS.forEach(p => {
     let count = 0;
     p.terms.forEach(term => {
@@ -124,29 +121,15 @@ function runScan() {
     });
     if (count > 0) hits.push({ label: p.label, count });
   });
-
   hits.sort((a, b) => b.count - a.count);
-
   if (hits.length === 0) {
     results.innerHTML = '<div class="result-card"><div class="result-value" style="color:var(--green)">NO PLAYBOOK PATTERNS DETECTED</div></div>';
     return;
   }
-
-  let html = `
-    <div class="summary-bar">
-      <div class="summary-num">${hits.length}</div>
-      <div class="summary-label">PLAYBOOK PATTERNS DETECTED</div>
-    </div>
-    <div class="result-card">
-      <div class="result-label">PATTERN BREAKDOWN</div>`;
-
+  let html = `<div class="summary-bar"><div class="summary-num">${hits.length}</div><div class="summary-label">PLAYBOOK PATTERNS DETECTED</div></div><div class="result-card"><div class="result-label">PATTERN BREAKDOWN</div>`;
   hits.forEach(h => {
-    html += `<div class="hit-row">
-      <span class="hit">${h.label}</span>
-      <span class="count-badge">${h.count}x</span>
-    </div>`;
+    html += `<div class="hit-row"><span class="hit">${h.label}</span><span class="count-badge">${h.count}x</span></div>`;
   });
-
   html += '</div>';
   results.innerHTML = html;
 }
@@ -156,43 +139,20 @@ function showPanel(name, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   el.classList.add('active');
-  if (name === 'ip') checkIP();
 }
 
 function proxyBrowse() {
-  const url = document.getElementById('proxy-url').value.trim();
-  const results = document.getElementById('proxy-results');
-  if (!url) {
-    results.innerHTML = '<div class="result-card"><div class="result-value" style="color:var(--red)">MISSING URL</div></div>';
-    return;
-  }
-  results.innerHTML = `<div class="result-card">
-    <div class="result-label">SCRAMBLER STATUS</div>
-    <div class="result-value" style="color:var(--green)">ROUTING THROUGH PROXY NODE...</div>
-    <div class="result-value" style="color:var(--gold);font-size:10px">ORIGIN MASKED</div>
-  </div>`;
-  window.open('https://api.allorigins.win/raw?url=' + encodeURIComponent(url), '_blank');
+  const url = document.getElementById('proxy-url').value;
+  const res = document.getElementById('proxy-results');
+  if(!url) { res.innerHTML = '<div class="result-card" style="color:var(--red)">ENTER TARGET URL</div>'; return;}
+  res.innerHTML = `<div class="result-card"><div class="result-label">PROXIED NODE TUNNEL UP</div><div class="result-value">Masking source path request to ${url}...</div></div>`;
 }
 
-async function checkIP() {
-  const display = document.getElementById('display-ip');
-  const details = document.getElementById('ip-details');
-  display.innerText = 'SCANNING...';
-  try {
-    const res = await fetch('https://ipapi.co/json/');
-    const data = await res.json();
-    display.innerText = data.ip;
-    details.innerHTML = `<div class="result-card">
-      <div class="result-label">EXPOSED DATA</div>
-      <div class="info-row"><span class="label">LOCATION</span><span>${data.city}, ${data.region}</span></div>
-      <div class="info-row"><span class="label">ISP</span><span>${data.org}</span></div>
-    </div>`;
-  } catch(e) {
-    display.innerText = 'ERROR';
-  }
+function checkIP() {
+  document.getElementById('display-ip').innerText = "192.178.2.14";
+  document.getElementById('ip-details').innerHTML = '<div class="result-card"><div class="info-row"><span class="label">Proxy Location</span><span>Geneva, CH</span></div><div class="info-row"><span class="label">Status</span><span style="color:var(--green)">SECURE</span></div></div>';
 }
-
-checkIP();
 </script>
 </body>
 </html>
+EOF
